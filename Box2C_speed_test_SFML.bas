@@ -16,6 +16,8 @@ black.b = 0
 black.a = 255
 ' ===============================================================================================================================
 
+Dim pathname As String = ExePath
+'Print "This program's initial directory is: " & pathname
 
 ' Setup SFML
 _CSFML_Startup
@@ -31,7 +33,7 @@ window_ptr = _CSFML_sfRenderWindow_create(800, 600, 16, "xxx", 6, NULL)
 window_hwnd = _CSFML_sfRenderWindow_getSystemHandle(window_ptr)
 _CSFML_sfRenderWindow_setVerticalSyncEnabled(window_ptr, 0)
 
-Dim As Long Ptr texture_ptr = sfTexture_createFromFile("C:\FreeBasic\Box2C_speed_test_SFML\crate.gif", NULL)
+Dim As Long Ptr texture_ptr = sfTexture_createFromFile(pathname & "\crate.gif", NULL)
 print texture_ptr
 Dim As Long Ptr sprite_ptr = _CSFML_sfSprite_create()
 sfSprite_setTexture(sprite_ptr, texture_ptr, sfTrue)

@@ -1,4 +1,5 @@
 #Include once "CSFML.bi"
+#Include once "Box2C.bi"
 
 ' #SUBROUTINES# ===================================================================================================================
 Declare Sub _Exit
@@ -16,6 +17,17 @@ Dim pathname As String = ExePath
 
 ' Setup SFML
 _CSFML_Startup
+
+' Setup Box2C
+_Box2C_Startup
+
+' Setup the Box2D World
+Dim As b2Vec2 gravity => (0, -10)
+_Box2C_b2World_Constructor(gravity, 1)
+
+' Setup the Box2D Shapes
+
+Global $platform_shape_ptr = _Box2C_b2ShapeDict_AddItem_SFML($Box2C_e_edge, _StringSplit2d("-2.5,-0.5|2.5,-0.5|2.5,0.5|-2.5,0.5"), @ScriptDir & "\platform.gif")
 
 
 'Dim As Long Ptr fred = _CSFML_sfClock_create()

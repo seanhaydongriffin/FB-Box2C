@@ -277,12 +277,6 @@ type sfColor
 end type
 
 
-
-' #SUBROUTINES# ===================================================================================================================
-Declare Sub _CSFML_Startup
-Declare Sub _CSFML_Shutdown
-' ===============================================================================================================================
-	
 ' #FUNCTIONS# ===================================================================================================================
 Dim Shared sfClock_create As Function () As Long Ptr
 Dim Shared sfClock_getElapsedTime As Function (byval clock As Long Ptr) As LongInt
@@ -309,6 +303,8 @@ Dim Shared sfSprite_setPosition As Sub (byval sprite As Long Ptr, byval position
 Dim Shared sfRenderWindow_drawText As Sub (byval renderWindow As Long Ptr, byval object2 As Long Ptr, byval states As Long Ptr)
 Dim Shared sfSprite_getPosition As Function (byval sprite As Long Ptr) As sfVector2f
 
+Declare Sub _CSFML_Startup
+Declare Sub _CSFML_Shutdown
 Declare Function _CSFML_sfClock_create () As Long Ptr
 Declare Function _CSFML_sfClock_getElapsedTime (clock As Long Ptr) As LongInt
 Declare Function _CSFML_sfRenderWindow_create (byval width3 As uinteger, byval height as uinteger, byval bitsPerPixel as uinteger, byval title as ZString Ptr, byval style as uinteger, byval settings as long ptr) As long ptr

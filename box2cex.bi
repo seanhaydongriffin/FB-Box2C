@@ -13,21 +13,31 @@
 
 
 ' #TYPES# ===================================================================================================================
+type shape
+    guid as integer
+    vertice(8) as b2Vec2
+    num_vertices as integer
+end type
 ' ===============================================================================================================================
 
 	
 ' #FUNCTIONS# ===================================================================================================================
-Declare Function _Box2C_b2ShapeDict_AddItem_SFML(byval type2 as integer, radius_vertice() As b2Vec2, byval shape_image_file_path as string) As integer
+'Declare Function _Box2C_b2ShapeDict_AddItem_SFML(byval type2 as integer, xxx() as integer, byval guid As integer, byval shape_image_file_path as string) As integer
+Declare Function _Box2C_b2ShapeDict_AddItem_SFML(byval type2 as integer, byval guid As integer, byval shape_image_file_path as string) As integer
+'Declare Function _Box2C_b2ShapeDict_AddItem_SFML(byval type2 as integer, radius_vertice_ptr As b2Vec2 ptr, byval shape_image_file_path as string) As integer
+'Declare Function _Box2C_b2ShapeDict_AddItem_SFML(byval type2 as integer, byval shape_image_file_path as string) As integer
 
 ' ===============================================================================================================================
 
 ' #VARIABLES# ===================================================================================================================
-dim shared as b2PolygonShapePortable ptr __shape_struct_ptr_arr()
-redim preserve __shape_struct_ptr_arr(0)
-dim shared as b2PolygonShapePortable __shape_struct_arr()
-redim preserve __shape_struct_arr(0)
-dim shared as b2Vec2 __shape_vertice_arr()
-redim preserve __shape_vertice_arr(0)
+'dim shared as b2PolygonShapePortable ptr __shape_struct_ptr_arr()
+'redim preserve __shape_struct_ptr_arr(0)
+'dim shared as b2PolygonShapePortable __shape_struct_arr()
+'redim preserve __shape_struct_arr(0)
+'dim shared as b2Vec2 __shape_vertice_arr()
+'redim preserve __shape_vertice_arr(0)
+dim shared as shape __main_shape()
+redim __main_shape(0)
 
 
 
@@ -64,9 +74,48 @@ redim preserve __shape_vertice_arr(0)
 ' Link ..........:
 ' Example .......:
 ' ===============================================================================================================================
-Function _Box2C_b2ShapeDict_AddItem_SFML(byval type2 as integer, radius_vertice() As b2Vec2, byval shape_image_file_path as string) As integer
+'Function _Box2C_b2ShapeDict_AddItem_SFML(byval type2 as integer, xxx() as integer, byval guid As integer, byval shape_image_file_path as string) As integer
+Function _Box2C_b2ShapeDict_AddItem_SFML(byval type2 as integer, byval guid As integer, byval shape_image_file_path as string) As integer
+'Function _Box2C_b2ShapeDict_AddItem_SFML(byval type2 as integer, radius_vertice_ptr As b2Vec2 ptr, byval shape_image_file_path as string) As integer
+'Function _Box2C_b2ShapeDict_AddItem_SFML(byval type2 as integer, byval shape_image_file_path as string) As integer
+
+    dim as shape ptr main_shape_ptr = @__main_shape(0)
+    
+    ' following is a debug - for educational purposes
+    
+'    dim as b2Vec2 ptr main_shape_vertice_ptr = @(*(main_shape_ptr).vertice(0))
+'    dim as b2Vec2 tmp_vertice
+    
+ '   for i as integer = 0 to (len(main_shape_vertice_ptr) - 1)
+   
+ '       tmp_vertice = *(main_shape_vertice_ptr + i)
+ '       print tmp_vertice.x
+ '       print tmp_vertice.y
+ '   next
+
+    
 
 
+'    dim as b2Vec2 vertice(8) = __main_shape(0)
+
+ '   dim as integer tt = len(radius_vertice_ptr)
+  '  print tt
+
+'    dim as b2Vec2 fff
+    
+ '   for i as integer = 0 to (len(radius_vertice_ptr) - 1)
+        
+ '       fff = *(radius_vertice_ptr + i)
+ '       print fff.x
+ '       print fff.y
+ '   next
+  '  print *radius_vertice_ptr
+'    dim as b2Vec2 radius_vertice(4)
+    
+ '   radius_vertice(0) = *radius_vertice_ptr
+  '  print ubound(radius_vertice)
+   ' print radius_vertice(1).x
+    'print radius_vertice(1).y
 
 	' create a new Box2C Polygone Shape for the new vertices and add it to the internal array of shape structures
 '	Local $tmp_shape_struct
@@ -79,22 +128,23 @@ Function _Box2C_b2ShapeDict_AddItem_SFML(byval type2 as integer, radius_vertice(
 
 '		case $Box2C_e_edge
 
-			Dim As b2PolygonShapePortable tmp_shape_struct = _Box2C_b2PolygonShape_Constructor(radius_vertice())
+'			Dim As b2PolygonShapePortable tmp_shape_struct = _Box2C_b2PolygonShape_Constructor(radius_vertice())
+			Dim As b2PolygonShapePortable tmp_shape_struct = _Box2C_b2PolygonShape_Constructor(*(main_shape_ptr).vertice(0))
 '	EndSwitch
 
-	dim as b2PolygonShapePortable ptr tmp_shape_struct_ptr = @tmp_shape_struct
+'	dim as b2PolygonShapePortable ptr tmp_shape_struct_ptr = @tmp_shape_struct
 '	Local $tmp_shape_struct_ptr_str = String($tmp_shape_struct_ptr)
-    redim preserve __shape_struct_ptr_arr(ubound(__shape_struct_ptr_arr) + 1)
-    __shape_struct_ptr_arr(ubound(__shape_struct_ptr_arr) - 1) = tmp_shape_struct_ptr
-    redim preserve __shape_struct_arr(ubound(__shape_struct_arr) + 1)
-    __shape_struct_arr(ubound(__shape_struct_ptr_arr) - 1) = tmp_shape_struct
+ '   redim preserve __shape_struct_ptr_arr(ubound(__shape_struct_ptr_arr) + 1)
+ '   __shape_struct_ptr_arr(ubound(__shape_struct_ptr_arr) - 1) = tmp_shape_struct_ptr
+ '   redim preserve __shape_struct_arr(ubound(__shape_struct_arr) + 1)
+ '   __shape_struct_arr(ubound(__shape_struct_ptr_arr) - 1) = tmp_shape_struct
 
 	' add the new vertices to the internal dictionary of shape vertices
 
 '	if $type = $Box2C_e_edge Then
 
-        redim preserve __shape_vertice_arr(ubound(__shape_vertice_arr) + 1)
-        __shape_vertice_arr(ubound(__shape_struct_ptr_arr) - 1) = radius_vertice
+  '      redim preserve __shape_vertice_arr(ubound(__shape_vertice_arr) + 1)
+  '      __shape_vertice_arr(ubound(__shape_struct_ptr_arr) - 1) = radius_vertice
 
 '		$__shape_vertice_dict.Add($tmp_shape_struct_ptr_str, $radius_vertice)
 '	EndIf
@@ -111,4 +161,3 @@ Function _Box2C_b2ShapeDict_AddItem_SFML(byval type2 as integer, radius_vertice(
 
 	Return 1
 End Function
-

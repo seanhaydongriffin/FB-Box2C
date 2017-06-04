@@ -8,6 +8,11 @@
 ' Dlls ..........: Box2C.dll
 ' ===============================================================================================================================
 
+' #CONSTANTS# ===================================================================================================================
+Const as single __epsilon = 0.00001
+' ===============================================================================================================================
+
+
 ' #ENUMERATIONS# ===================================================================================================================
 ' ===============================================================================================================================
 
@@ -18,43 +23,52 @@ type b2Vec2
     y as Single
 end type
 
+'type b2PolygonShapePortable
+'    m_type as integer
+'    m_radius as single
+'    m_centroid_x as single
+'    m_centroid_y as single
+'    m_vertice_1_x as single
+'    m_vertice_1_y as single
+'    m_vertice_2_x as single
+'    m_vertice_2_y as single
+'    m_vertice_3_x as single
+'    m_vertice_3_y as single
+'    m_vertice_4_x as single
+'    m_vertice_4_y as single
+'    m_vertice_5_x as single
+'    m_vertice_5_y as single
+'    m_vertice_6_x as single
+'    m_vertice_6_y as single
+'    m_vertice_7_x as single
+'    m_vertice_7_y as single
+'    m_vertice_8_x as single
+'    m_vertice_8_y as single
+'    m_normal_1_x as single
+'    m_normal_1_y as single
+'    m_normal_2_x as single
+'    m_normal_2_y as single
+'    m_normal_3_x as single
+'    m_normal_3_y as single
+''    m_normal_4_x as single
+'    m_normal_4_y as single
+'    m_normal_5_x as single
+'    m_normal_5_y as single
+'    m_normal_6_x as single
+'    m_normal_6_y as single
+'    m_normal_7_x as single
+'    m_normal_7_y as single
+'    m_normal_8_x as single
+'    m_normal_8_y as single
+'    m_vertexCount as integer
+'end type
+
 type b2PolygonShapePortable
     m_type as integer
     m_radius as single
-    m_centroid_x as single
-    m_centroid_y as single
-    m_vertice_1_x as single
-    m_vertice_1_y as single
-    m_vertice_2_x as single
-    m_vertice_2_y as single
-    m_vertice_3_x as single
-    m_vertice_3_y as single
-    m_vertice_4_x as single
-    m_vertice_4_y as single
-    m_vertice_5_x as single
-    m_vertice_5_y as single
-    m_vertice_6_x as single
-    m_vertice_6_y as single
-    m_vertice_7_x as single
-    m_vertice_7_y as single
-    m_vertice_8_x as single
-    m_vertice_8_y as single
-    m_normal_1_x as single
-    m_normal_1_y as single
-    m_normal_2_x as single
-    m_normal_2_y as single
-    m_normal_3_x as single
-    m_normal_3_y as single
-    m_normal_4_x as single
-    m_normal_4_y as single
-    m_normal_5_x as single
-    m_normal_5_y as single
-    m_normal_6_x as single
-    m_normal_6_y as single
-    m_normal_7_x as single
-    m_normal_7_y as single
-    m_normal_8_x as single
-    m_normal_8_y as single
+    m_centroid as b2Vec2
+    m_vertice(8) as b2Vec2
+    m_normal(8) as b2Vec2
     m_vertexCount as integer
 end type
 
@@ -68,7 +82,14 @@ Dim Shared b2world_constructor As Function (byval gravity As b2Vec2, byval doSle
 
 Declare Sub _Box2C_Startup
 Declare Sub _Box2C_Shutdown
+Declare Function _Box2C_b2Vec2_Length(vector as b2Vec2) as single
 Declare Function _Box2C_b2World_Constructor(byval gravity As b2Vec2, byval doSleep as Boolean) As Long Ptr
+Declare Function _Box2C_b2PolygonShape_Constructor(vertices() As b2Vec2) As b2PolygonShapePortable
+Declare Sub _Box2C_b2PolygonShape_Set(byref polygon_shape_portable As b2PolygonShapePortable, vertices() As b2Vec2)
+Declare Function _Box2C_b2PolygonShape_ComputeCentroid(vertices() As b2Vec2) As b2Vec2
+Declare Function _Box2C_b2PolygonShape_CrossProductVectorVector(x1 as single, y1 as single, x2 as single, y2 as single) as single
+Declare Function _Box2C_b2PolygonShape_CrossProductVectorScalar(x as single, y as single, s as single) as b2Vec2
+Declare Function _Box2C_b2PolygonShape_Normalize(vector as b2Vec2) as b2Vec2
 ' ===============================================================================================================================
 
 ' #VARIABLES# ===================================================================================================================
@@ -128,6 +149,28 @@ End sub
 ' #SFCLOCK FUNCTIONS# =====================================================================================================
 
 
+
+' #FUNCTION# ====================================================================================================================
+' Name...........: _Box2C_b2Vec2_Length
+' Description ...: Gets the length of a vector.
+' Syntax.........: _Box2C_b2Vec2_Length($x, $y)
+' Parameters ....: $x - horizontal component (pixel position) of the vector
+'				   $y - vertical component (pixel position) of the vector
+' Return values .: Success - the length of the vector
+'				   Failure - 0
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Function _Box2C_b2Vec2_Length(vector as b2Vec2) as single
+
+	Return sqr(vector.x * vector.x + vector.y * vector.y)
+End Function
+
+
 ' #FUNCTION# ====================================================================================================================
 ' Name...........: _Box2C_b2World_Constructor
 ' Description ...: Constructs a b2World structure.
@@ -165,14 +208,15 @@ End Function
 ' Link ..........:
 ' Example .......:
 ' ===============================================================================================================================
-Function _Box2C_b2PolygonShape_Constructor(byval vertices As b2Vec2) As Long Ptr
+Function _Box2C_b2PolygonShape_Constructor(vertices() As b2Vec2) As b2PolygonShapePortable
 
-    Dim As b2PolygonShapePortable polygon_shape_portable => (1, 0.01, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4)
-    Dim As b2PolygonShapePortable ptr polygon_shape_portable_ptr = @polygon_shape_portable
-    
-	_Box2C_b2PolygonShape_Set(polygon_shape_portable_ptr, vertices)
+'    Dim As b2PolygonShapePortable polygon_shape_portable => (1, 0.01, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4)
+    Dim As b2PolygonShapePortable polygon_shape_portable => (1, 0.01, (0, 0), {(0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0)}, {(0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0)}, 0)
+'    Dim As b2PolygonShapePortable ptr polygon_shape_portable_ptr = @polygon_shape_portable
 
-	Return $polygon_shape_portable
+	_Box2C_b2PolygonShape_Set(polygon_shape_portable, vertices())
+
+	Return polygon_shape_portable
 End Function
 
 
@@ -190,95 +234,215 @@ End Function
 ' Link ..........:
 ' Example .......:
 ' ===============================================================================================================================
-Function _Box2C_b2PolygonShape_Set(byval polygon_shape_portable_ptr As b2PolygonShapePortable ptr) As Long Ptr
+Sub _Box2C_b2PolygonShape_Set(byref polygon_shape_portable As b2PolygonShapePortable, vertices() As b2Vec2)
+
+    dim as b2Vec2 normals(ubound(vertices))
+    
+   
+	' Compute the polygon centroid.
+
+	dim as b2Vec2 centroid = _Box2C_b2PolygonShape_ComputeCentroid(vertices())
+    polygon_shape_portable.m_centroid.x = centroid.x
+    polygon_shape_portable.m_centroid.y = centroid.y
+	
+    ' Shift the shape, meaning it's center and therefore it's centroid, to the world position of 0,0, such that rotations and calculations are easier
+
+	for vertice_num as integer = 0 to (UBound(vertices) - 1)
+
+		vertices(vertice_num).x = vertices(vertice_num).x - centroid.x
+		vertices(vertice_num).y = vertices(vertice_num).y - centroid.y
+	Next
+
+    dim as integer polygon_shape_portable_element_num = 4
+    
+	for vertice_num as integer = 0 to (UBound(vertices) - 1)
+
+        polygon_shape_portable.m_vertice(vertice_num).x = vertices(vertice_num).x
+        polygon_shape_portable.m_vertice(vertice_num).y = vertices(vertice_num).y
+	Next
+    
+    ' Compute normals. Ensure the edges have non-zero length.
+
+	for i as integer = 0 to (UBound(vertices) - 1)
+
+		dim as integer i1 = i
+		dim as integer i2 = 0
+
+		if (i + 1) < UBound(vertices) Then
+
+			i2 = i + 1
+		EndIf
+
+		dim as single edge_x = vertices(i2).x - vertices(i1).x
+		dim as single edge_y = vertices(i2).y - vertices(i1).y
+
+		dim as b2Vec2 edge_cross = _Box2C_b2PolygonShape_CrossProductVectorScalar(edge_x, edge_y, 1)
+
+		normals(i).x = edge_cross.x
+		normals(i).y = edge_cross.y
+
+		dim as b2Vec2 normal_normalised = _Box2C_b2PolygonShape_Normalize(normals(i))
+
+        polygon_shape_portable.m_normal(i).x = normal_normalised.x
+        polygon_shape_portable.m_normal(i).y = normal_normalised.y
+    next
+
+	' Vertex Count
+    polygon_shape_portable.m_vertexCount = ubound(vertices)
+
+End Sub
 
 
+' #FUNCTION# ====================================================================================================================
+' Name...........: _Box2C_b2PolygonShape_ComputeCentroid
+' Description ...:
+' Syntax.........: _Box2C_b2PolygonShape_ComputeCentroid($vertices)
+' Parameters ....: $x -
+'				   $y -
+' Return values .: A vector (2D element array) of the centroid of the vertices
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Function _Box2C_b2PolygonShape_ComputeCentroid(vertices() As b2Vec2) As b2Vec2
+
+    dim as b2Vec2 centroid
+    dim as single area = 0
+
+	if UBound(vertices) = 2 Then
+
+		centroid.x = 0.5 * (vertices(0).x + vertices(1).x)
+		centroid.y = 0.5 * (vertices(0).y + vertices(1).y)
+	EndIf
+
+	' pRef is the reference point for forming triangles.
+	' It's location doesn't change the result (except for rounding error).
+
+    dim as integer pRef_x = 0, pRef_y = 0
+    dim as integer inv3 = 1 / 3
+
+	for i as integer = 0 to (UBound(vertices) - 1)
+
+		dim as integer p1_x = pRef_x
+		dim as integer p1_y = pRef_y
+		dim as single p2_x = vertices(i).x
+		dim as single p2_y = vertices(i).y
+		dim as single p3_x, p3_y
+
+		if (i + 1) < UBound(vertices) Then
+
+			p3_x = vertices(i + 1).x
+			p3_y = vertices(i + 1).y
+		Else
+
+			p3_x = vertices(0).x
+			p3_y = vertices(0).y
+		EndIf
+
+		dim as single e1_x = p2_x - p1_x
+		dim as single e1_y = p2_y - p1_y
+		dim as single e2_x = p3_x - p1_x
+		dim as single e2_y = p3_y - p1_y
+
+		dim as single D = _Box2C_b2PolygonShape_CrossProductVectorVector(e1_x, e1_y, e2_x, e2_y)
+
+		dim as single triangleArea = 0.5 * D
+		area = area + triangleArea
+
+		' Area weighted centroid
+		centroid.x = centroid.x + (triangleArea * inv3 * (p1_x + p2_x + p3_x))
+		centroid.y = centroid.y + (triangleArea * inv3 * (p1_y + p2_y + p3_y))
+
+    next
+    
+	centroid.x = centroid.x * (1 / area)
+	centroid.y = centroid.y * (1 / area)
+
+	Return centroid
 End Function
 
 
-Func _Box2C_b2PolygonShape_Set($polygon_shape_portable_ptr, $vertices)
+' #FUNCTION# ====================================================================================================================
+' Name...........: _Box2C_b2PolygonShape_CrossProductVectorVector
+' Description ...:
+' Syntax.........: _Box2C_b2PolygonShape_CrossProductVectorVector($x1, $y1, $x2, $y2)
+' Parameters ....: $x1 -
+'				   $y1 -
+'				   $x2 -
+'				   $y2 -
+' Return values .:
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Function _Box2C_b2PolygonShape_CrossProductVectorVector(x1 as single, y1 as single, x2 as single, y2 as single) as single
 
-	local $polygon_shape_portable = DllStructCreate("STRUCT;int;float;float;float;float;float;float;float;float;float;float;float;float;float;float;float;float;float;float;float;float;float;float;float;float;float;float;float;float;float;float;float;float;float;float;float;int;ENDSTRUCT", $polygon_shape_portable_ptr)
-	Local $normals[UBound($vertices)][2]
-
-	Local $polygon_shape_portable_element_num
-	Local $vertice_num = -1
-
-	; Compute the polygon centroid.
-
-	Local $centroid = _Box2C_b2PolygonShape_ComputeCentroid($vertices)
-
-	DllStructSetData($polygon_shape_portable, 3, $centroid[0])
-	DllStructSetData($polygon_shape_portable, 4, $centroid[1])
-
-
-	; Shift the shape, meaning it's center and therefore it's centroid, to the world position of 0,0, such that rotations and calculations are easier
-
-	for $vertice_num = 0 to (UBound($vertices) - 1)
-
-		$vertices[$vertice_num][0] = $vertices[$vertice_num][0] - $centroid[0]
-		$vertices[$vertice_num][1] = $vertices[$vertice_num][1] - $centroid[1]
-	Next
+	Return (x1 * y2) - (y1 * x2)
+End Function
 
 
-	$polygon_shape_portable_element_num = 4
+' #FUNCTION# ====================================================================================================================
+' Name...........: _Box2C_b2PolygonShape_CrossProductVectorScalar
+' Description ...:
+' Syntax.........: _Box2C_b2PolygonShape_CrossProductVectorScalar($x, $y, $s)
+' Parameters ....: $x -
+'				   $y -
+'				   $s -
+' Return values .:
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Function _Box2C_b2PolygonShape_CrossProductVectorScalar(x as single, y as single, s as single) as b2Vec2
 
-	for $vertice_num = 0 to (UBound($vertices) - 1)
+    dim as b2Vec2 vector
 
-		$polygon_shape_portable_element_num = $polygon_shape_portable_element_num + 1
-		DllStructSetData($polygon_shape_portable, $polygon_shape_portable_element_num, $vertices[$vertice_num][0])
-		$polygon_shape_portable_element_num = $polygon_shape_portable_element_num + 1
-		DllStructSetData($polygon_shape_portable, $polygon_shape_portable_element_num, $vertices[$vertice_num][1])
-	Next
+    vector.x = s * y
+	vector.y = -s * x
 
-	; Compute normals. Ensure the edges have non-zero length.
-
-	$polygon_shape_portable_element_num = 20
-
-	for $i = 0 to (UBound($vertices) - 1)
-
-		Local $i1 = $i
-		Local $i2 = 0
-
-		if ($i + 1) < UBound($vertices) Then
-
-			$i2 = $i + 1
-		EndIf
-
-		Local $edge_x = $vertices[$i2][0] - $vertices[$i1][0]
-		Local $edge_y = $vertices[$i2][1] - $vertices[$i1][1]
-
-		Local $edge_cross = _Box2C_b2PolygonShape_CrossProductVectorScalar($edge_x, $edge_y, 1)
-
-		$normals[$i][0] = $edge_cross[0]
-		$normals[$i][1] = $edge_cross[1]
-
-		Local $normal_normalised = _Box2C_b2PolygonShape_Normalize($normals[$i][0], $normals[$i][1])
-
-		$polygon_shape_portable_element_num = $polygon_shape_portable_element_num + 1
-		DllStructSetData($polygon_shape_portable, $polygon_shape_portable_element_num, $normal_normalised[0])
-		$polygon_shape_portable_element_num = $polygon_shape_portable_element_num + 1
-		DllStructSetData($polygon_shape_portable, $polygon_shape_portable_element_num, $normal_normalised[1])
-
-;		$normals[$i][0] = $normal_normalised[0]
-;		ConsoleWrite('@@ Debug(' & @ScriptLineNumber & ') : $normals[$i][0] = ' & $normals[$i][0] & @CRLF & '>Error code: ' & @error & @CRLF) ;### Debug Console
-;		$normals[$i][1] = $normal_normalised[1]
-;		ConsoleWrite('@@ Debug(' & @ScriptLineNumber & ') : $normals[$i][1] = ' & $normals[$i][1] & @CRLF & '>Error code: ' & @error & @CRLF) ;### Debug Console
-	Next
+	Return vector
+End Function
 
 
-	; Vertex Count
+' #FUNCTION# ====================================================================================================================
+' Name...........: _Box2C_b2PolygonShape_Normalize
+' Description ...:
+' Syntax.........: _Box2C_b2PolygonShape_Normalize($x, $y)
+' Parameters ....: $x -
+'				   $y -
+' Return values .:
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Function _Box2C_b2PolygonShape_Normalize(vector as b2Vec2) as b2Vec2
 
-	DllStructSetData($polygon_shape_portable, 37, UBound($vertices))
+    dim as b2Vec2 vector_out
+	dim as single length = _Box2C_b2Vec2_Length(vector)
 
+	if length < __epsilon Then
 
-;	for $i = 0 to (UBound($vertices) - 1)
+        vector_out.x = 0
+        vector_out.y = 0
+		Return vector_out
+	EndIf
 
-;		_internalPolyShape.m_vertices[i] = verts[i];
-;		_internalPolyShape.m_normals[i] = normals[i];
-;	Next
+	dim as single invLength = 1 / length
 
-;	VertexCount = verts.Length;
+	vector_out.x = vector.x * invLength
+	vector_out.y = vector.y * invLength
 
-
-EndFunc
+	Return vector_out
+End Function

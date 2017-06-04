@@ -36,11 +36,11 @@ enum sfEventType
 end enum
 
 enum sfKeyCode
-    sfKeyA = 97
-    sfKeyB = 98
-    sfKeyC = 99
-    sfKeyD = 100
-    sfKeyE = 101
+    sfKeyA = 0
+    sfKeyB = 1
+    sfKeyC = 2
+    sfKeyD = 3
+    sfKeyE = 4
     sfKeyF = 102
     sfKeyG = 103
     sfKeyH = 104
@@ -190,6 +190,11 @@ type sfVideoMode
     bitsPerPixel2 as uinteger
 end type
 
+type sfVector2f
+    x as Single
+    y as Single
+end type
+
 type sfContextSettings
      depthBits as uinteger
      stencilBits as uinteger
@@ -293,6 +298,16 @@ Dim Shared sfSprite_setTexture As Sub (byval sprite As Long Ptr, byval texture A
 Dim Shared sfRenderWindow_clear As Sub (byval renderWindow As Long Ptr, byval color2 as sfColor)
 Dim Shared sfRenderWindow_drawSprite As Sub (byval renderWindow As Long Ptr, byval object2 As Long Ptr, byval states As Long Ptr)
 Dim Shared sfRenderWindow_display As Sub (byval renderWindow As Long Ptr)
+Dim Shared sfText_create As Function () As Long Ptr
+Dim Shared sfFont_createFromFile As Function (byval filename as ZString Ptr) As long ptr
+Dim Shared sfText_setString As Sub (byval text As Long Ptr, byval string2 as ZString Ptr)
+Dim Shared sfText_setFont As Sub (byval text As Long Ptr, byval font as Long Ptr)
+Dim Shared sfText_setCharacterSize As Sub (byval text As Long Ptr, byval size as uinteger)
+Dim Shared sfText_setFillColor As Sub (byval text As Long Ptr, byval color2 as sfColor)
+Dim Shared sfText_setPosition As Sub (byval text As Long Ptr, byval position As sfVector2f)
+Dim Shared sfSprite_setPosition As Sub (byval sprite As Long Ptr, byval position As sfVector2f)
+Dim Shared sfRenderWindow_drawText As Sub (byval renderWindow As Long Ptr, byval object2 As Long Ptr, byval states As Long Ptr)
+Dim Shared sfSprite_getPosition As Function (byval sprite As Long Ptr) As sfVector2f
 
 Declare Function _CSFML_sfClock_create () As Long Ptr
 Declare Function _CSFML_sfClock_getElapsedTime (clock As Long Ptr) As LongInt
@@ -308,12 +323,26 @@ Declare Sub _CSFML_sfSprite_setTexture(byval sprite As Long Ptr, byval texture A
 Declare Sub _CSFML_sfRenderWindow_clear(byval renderWindow As Long Ptr, byval color2 as sfColor)
 Declare Sub _CSFML_sfRenderWindow_drawSprite(byval renderWindow As Long Ptr, byval object2 As Long Ptr, byval states As Long Ptr)
 Declare Sub _CSFML_sfRenderWindow_display(byval renderWindow As Long Ptr)
+Declare Function _CSFML_sfText_create() As long ptr
+Declare Function _CSFML_sfFont_createFromFile(byval filename as ZString Ptr) As long ptr
+Declare Sub _CSFML_sfText_setString(byval text As Long Ptr, byval string2 as ZString Ptr)
+Declare Sub _CSFML_sfText_setFont(byval text As Long Ptr, byval font as Long Ptr)
+Declare Sub _CSFML_sfText_setCharacterSize(byval text As Long Ptr, byval size as uinteger)
+Declare Sub _CSFML_sfText_setFillColor(byval text As Long Ptr, byval color2 as sfColor)
+Declare Sub _CSFML_sfText_setPosition(byval text As Long Ptr, byval position As sfVector2f)
+Declare Sub _CSFML_sfSprite_setPosition(byval sprite As Long Ptr, byval position As sfVector2f)
+Declare Sub _CSFML_sfRenderWindow_drawText(byval renderWindow As Long Ptr, byval object2 As Long Ptr, byval states As Long Ptr)
+Declare Function _CSFML_sfText_create_and_set(byval font_ptr As Long Ptr, byval size as uinteger, byval color2 as sfColor, byval x as Single, byval y as Single) As long ptr
+Declare Function _CSFML_sfSprite_getPosition(byval sprite As Long Ptr) As sfVector2f
 ' ===============================================================================================================================
 
 ' #VARIABLES# ===================================================================================================================
 Dim Shared As Any Ptr csfml_system_library
 Dim Shared As Any Ptr csfml_graphics_library
 Dim Shared As Any Ptr csfml_window_library
+Dim Shared As sfColor black => (0, 0, 0, 255)
+Dim Shared As sfColor white => (255, 255, 255, 255)
+Dim Shared As Any Ptr courier_new_font_ptr
 ' ===============================================================================================================================
 
 
@@ -356,8 +385,19 @@ Sub _CSFML_Startup
 	sfRenderWindow_clear = DyLibSymbol( csfml_graphics_library, "sfRenderWindow_clear" )
 	sfRenderWindow_drawSprite = DyLibSymbol( csfml_graphics_library, "sfRenderWindow_drawSprite" )
 	sfRenderWindow_display = DyLibSymbol( csfml_graphics_library, "sfRenderWindow_display" )
+	sfText_create = DyLibSymbol( csfml_graphics_library, "sfText_create" )
+	sfFont_createFromFile = DyLibSymbol( csfml_graphics_library, "sfFont_createFromFile" )
+	sfText_setString = DyLibSymbol( csfml_graphics_library, "sfText_setString" )
+	sfText_setFont = DyLibSymbol( csfml_graphics_library, "sfText_setFont" )
+	sfText_setCharacterSize = DyLibSymbol( csfml_graphics_library, "sfText_setCharacterSize" )
+	sfText_setFillColor = DyLibSymbol( csfml_graphics_library, "sfText_setFillColor" )
+	sfText_setPosition = DyLibSymbol( csfml_graphics_library, "sfText_setPosition" )
+	sfSprite_setPosition = DyLibSymbol( csfml_graphics_library, "sfSprite_setPosition" )
+	sfRenderWindow_drawText = DyLibSymbol( csfml_graphics_library, "sfRenderWindow_drawText" )
+	sfSprite_getPosition = DyLibSymbol( csfml_graphics_library, "sfSprite_getPosition" )
 
 
+  '  courier_new_font_ptr = sfFont_createFromFile("C:\Windows\Fonts\cour.ttf")
 
 
 End Sub
@@ -606,12 +646,6 @@ Function _CSFML_sfTexture_createFromFile(byval filename as ZString Ptr, byval ar
 
     Dim As long ptr fred3 = sfTexture_createFromFile(filename, area)
     return fred3
-
-'	Local $sfTexture = DllCall($__CSFML_Graphics_DLL, "PTR:cdecl", "sfTexture_createFromFile", "STR", $filename, "PTR", $area)
-'	If @error > 0 Then Return SetError(@error,0,0)
-
-'	Local $sfTexture_ptr = $sfTexture[0]
-'	Return $sfTexture_ptr
 End Function
 
 
@@ -661,10 +695,6 @@ End Sub
 Sub _CSFML_sfRenderWindow_clear(byval renderWindow As Long Ptr, byval color2 as sfColor)
 
     sfRenderWindow_clear(renderWindow, color2)
-'	DllCall($__CSFML_Graphics_DLL, "NONE:cdecl", "sfRenderWindow_clear", "PTR", $renderWindow, "STRUCT", $color)
-'	If @error > 0 Then Return SetError(@error,0,0)
-
-'	Return True
 End Sub
 
 
@@ -708,3 +738,256 @@ Sub _CSFML_sfRenderWindow_display(byval renderWindow As Long Ptr)
 
     sfRenderWindow_display(renderWindow)
 End Sub
+
+
+' #FUNCTION# ====================================================================================================================
+' Name...........: _CSFML_sfText_create
+' Description ...: Create a new text.
+' Syntax.........: _CSFML_sfText_create()
+' Parameters ....: None
+' Return values .: Success - A new sfText object
+'				   Failure - 0 or Null
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Function _CSFML_sfText_create() As long ptr
+
+    Dim As long ptr fred3 = _CSFML_sfText_create()
+    return fred3
+End Function
+
+
+' #FUNCTION# ====================================================================================================================
+' Name...........: _CSFML_sfFont_createFromFile
+' Description ...: Create a new font from a file.
+' Syntax.........: _CSFML_sfFont_createFromFile($filename)
+' Parameters ....: $filename - Path of the font file to load
+' Return values .: Success - A new sfFont object
+'				   Failure - 0 or Null
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Function _CSFML_sfFont_createFromFile(byval filename as ZString Ptr) As long ptr
+
+    Dim As long ptr fred3 = sfFont_createFromFile(filename)
+    return fred3
+End Function
+
+
+' #FUNCTION# ====================================================================================================================
+' Name...........: _CSFML_sfText_setString
+' Description ...: Set the string of a text (from an ANSI string).
+'				   A text's string is empty by default
+' Syntax.........: _CSFML_sfText_setString($text, $string)
+' Parameters ....: $text - Text object
+'				   $string - New string
+' Return values .: Success - True
+'				   Failure - 0
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Sub _CSFML_sfText_setString(byval text As Long Ptr, byval string2 as ZString Ptr)
+
+    sfText_setString(text, string2)
+End Sub
+
+
+' #FUNCTION# ====================================================================================================================
+' Name...........: _CSFML_sfText_setFont
+' Description ...: Set the font of a text.
+'				   The font argument refers to a texture that must exist as long as the text uses it. Indeed, the text
+'				   doesn't store its own copy of the font, but rather keeps a pointer to the one that you passed to this
+'				   function. If the font is destroyed and the text tries to use it, the behaviour is undefined
+' Syntax.........: _CSFML_sfText_setFont($text, $font)
+' Parameters ....: $text - Text object
+'				   $font - New font
+' Return values .: Success - True
+'				   Failure - 0
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Sub _CSFML_sfText_setFont(byval text As Long Ptr, byval font as Long Ptr)
+
+    sfText_setFont(text, font)
+End Sub
+
+
+' #FUNCTION# ====================================================================================================================
+' Name...........: _CSFML_sfText_setCharacterSize
+' Description ...: Set the character size of a text.
+'				   The default size is 30.
+' Syntax.........: _CSFML_sfText_setCharacterSize($text, $size)
+' Parameters ....: $text - Text object
+'				   $size - New character size, in pixels
+' Return values .: Success - True
+'				   Failure - 0
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Sub _CSFML_sfText_setCharacterSize(byval text As Long Ptr, byval size as uinteger)
+
+    sfText_setCharacterSize(text, size)
+End Sub
+
+
+' #FUNCTION# ====================================================================================================================
+' Name...........: _CSFML_sfText_setFillColor
+' Description ...: Set the fill color of a text.
+'				   By default, the text's fill color is opaque white. Setting the fill color to a transparent color with an
+'				   outline will cause the outline to be displayed in the fill area of the text.
+' Syntax.........: _CSFML_sfText_setFillColor($text, $color)
+' Parameters ....: $text - Text object
+'				   $color - New fill color of the text
+' Return values .: Success - True
+'				   Failure - 0
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Sub _CSFML_sfText_setFillColor(byval text As Long Ptr, byval color2 as sfColor)
+
+    sfText_setFillColor(text, color2)
+End Sub
+
+
+' #FUNCTION# ====================================================================================================================
+' Name...........: _CSFML_sfText_setPosition
+' Description ...: Set the position of a text.
+'				   This function completely overwrites the previous position. See sfText_move to apply an offset based on
+'				   the previous position instead. The default position of a text Text object is (0, 0).
+
+' Syntax.........: _CSFML_sfText_setPosition($text, $position)
+' Parameters ....: $text - Text object
+'				   $position - New position
+' Return values .: Success - True
+'				   Failure - 0
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Sub _CSFML_sfText_setPosition(byval text As Long Ptr, byval position As sfVector2f)
+
+    sfText_setPosition(text, position)
+End Sub
+
+
+' #FUNCTION# ====================================================================================================================
+' Name...........: _CSFML_sfSprite_getPosition
+' Description ...: Set the position of a sprite, with a sfVector2f structure.
+'				   This function completely overwrites the previous position. See sfSprite_move to apply an offset based
+'				   on the previous position instead. The default position of a sprite Sprite object is (0, 0).
+' Syntax.........: _CSFML_sfSprite_getPosition($sprite, $position)
+' Parameters ....: $sprite - Sprite object
+'				   $position - New position (sfVector2f)
+' Return values .: Success - True
+'				   Failure - 0
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......: This function is slightly slower than _CSFML_sfSprite_setPosition_xy by about 100 frames per second
+' Related .......: _CSFML_sfSprite_create, _CSFML_sfVector2f_Constructor
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Function _CSFML_sfSprite_getPosition(byval sprite As Long Ptr) As sfVector2f
+
+    Dim As sfVector2f sprite_pos = sfSprite_getPosition(sprite)
+    return sprite_pos
+End Function
+
+' #FUNCTION# ====================================================================================================================
+' Name...........: _CSFML_sfSprite_setPosition
+' Description ...: Set the position of a sprite, with a sfVector2f structure.
+'				   This function completely overwrites the previous position. See sfSprite_move to apply an offset based
+'				   on the previous position instead. The default position of a sprite Sprite object is (0, 0).
+' Syntax.........: _CSFML_sfSprite_setPosition($sprite, $position)
+' Parameters ....: $sprite - Sprite object
+'				   $position - New position (sfVector2f)
+' Return values .: Success - True
+'				   Failure - 0
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......: This function is slightly slower than _CSFML_sfSprite_setPosition_xy by about 100 frames per second
+' Related .......: _CSFML_sfSprite_create, _CSFML_sfVector2f_Constructor
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Sub _CSFML_sfSprite_setPosition(byval sprite As Long Ptr, byval position As sfVector2f)
+
+    sfSprite_setPosition(sprite, position)
+End Sub
+
+
+' #FUNCTION# ====================================================================================================================
+' Name...........: _CSFML_sfRenderWindow_drawText
+' Description ...: Draw text in a render window.
+' Syntax.........: _CSFML_sfRenderWindow_drawText($renderWindow, $object, $states)
+' Parameters ....: $renderWindow - Render window object
+'				   $object - the text to draw
+'				   $states - Render states to use for drawing (Null to use the default states)
+' Return values .: Success - True
+'				   Failure - 0
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......: _CSFML_sfRenderWindow_create
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Sub _CSFML_sfRenderWindow_drawText(byval renderWindow As Long Ptr, byval object2 As Long Ptr, byval states As Long Ptr)
+
+    sfRenderWindow_drawText(renderWindow, object2, states)
+End Sub
+
+
+' #FUNCTION# ====================================================================================================================
+' Name...........: _CSFML_sfText_create_and_set
+' Description ...: A convenience function to create a new text and also set it's properties in one call.
+' Syntax.........: _CSFML_sfText_create_and_set()
+' Parameters ....: None
+' Return values .: Success - A new sfText object
+'				   Failure - 0 or Null
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Function _CSFML_sfText_create_and_set(byval font_ptr As Long Ptr, byval size as uinteger, byval color2 as sfColor, byval x as Single, byval y as Single) As long ptr
+    
+    Dim As Long Ptr text_ptr = sfText_create()
+    sfText_setFont(text_ptr, font_ptr)
+    sfText_setCharacterSize(text_ptr, size)
+    sfText_setFillColor(text_ptr, color2)
+    Dim As sfVector2f text_pos => (x, y)
+    sfText_setPosition(text_ptr, text_pos)
+    
+    return text_ptr
+End Function
+

@@ -36,7 +36,18 @@ end type
 type body
     created as boolean
     body_ptr as long ptr
+    prev_screen_x as integer
+    prev_screen_y as integer
+    curr_screen_x as integer
+    curr_screen_y as integer
+    prev_angle_degrees as single
+    curr_angle_degrees as single
+    width2 as single
+    height2 as single
+    out_of_bounds_behaviour as integer
+    draw2 as boolean
 end type
+
 ' ===============================================================================================================================
 
 	
@@ -240,7 +251,7 @@ End Function
 ' Link ..........:
 ' Example .......:
 ' ===============================================================================================================================
-Function _Box2C_b2BodyDict_AddItem_SFML(byval bodydef_index as integer, byval shape_index as integer, density as single, restitution as single, friction as single, x as single = 999999, y as single = 999999, angle as single, out_of_bounds_behaviour as integer = 0, shape_x_pixel_offset as integer = 0, shape_y_pixel_offset as integer = 0) As integer
+Function _Box2C_b2BodyDict_AddItem_SFML(byval bodydef_index as integer, byval shape_index as integer, density as single, restitution as single, friction as single, x as single = 999999, y as single = 999999, angle as single = 999999, out_of_bounds_behaviour as integer = 0, shape_x_pixel_offset as integer = 0, shape_y_pixel_offset as integer = 0) As integer
     
     ' find a main body that hasn't been created (created = 0)
     dim as integer body_index
@@ -264,29 +275,26 @@ Function _Box2C_b2BodyDict_AddItem_SFML(byval bodydef_index as integer, byval sh
 
 	if x < 999999 And y < 999999 Then
 
-		_Box2C_b2Body_SetPosition($tmp_body_struct_ptr, $x, $y)
+		_Box2C_b2Body_SetPosition(__main_body(body_index).body_ptr, x, y)
 	EndIf
 
-	if IsNumber($angle) = True Then
+	if angle < 999999 Then
 
-		_Box2C_b2Body_SetAngle($tmp_body_struct_ptr, $angle)
+		_Box2C_b2Body_SetAngle(__main_body(body_index).body_ptr, angle)
 	EndIf
-
-	Local $tmp_shape_vertice = $__shape_vertice_dict.Item($shape_ptr)
-
-
 
 	' add other attributes, such as the initial positions, angles and body widths and heights to the internal arrays for bodies
-	$__body_prev_screen_x_dict.Add($tmp_body_struct_ptr_str, -1)
-	$__body_prev_screen_y_dict.Add($tmp_body_struct_ptr_str, -1)
-	$__body_curr_screen_x_dict.Add($tmp_body_struct_ptr_str, -1)
-	$__body_curr_screen_y_dict.Add($tmp_body_struct_ptr_str, -1)
-	$__body_prev_angle_degrees_dict.Add($tmp_body_struct_ptr_str, -1)
-	$__body_curr_angle_degrees_dict.Add($tmp_body_struct_ptr_str, -1)
-	$__body_width_dict.Add($tmp_body_struct_ptr_str, _ArrayMax($tmp_shape_vertice, 1, -1, -1, 0))
-	$__body_height_dict.Add($tmp_body_struct_ptr_str, _ArrayMax($tmp_shape_vertice, 1, -1, -1, 1))
-	$__body_out_of_bounds_behaviour_dict.Add($tmp_body_struct_ptr_str, $out_of_bounds_behaviour)
-	$__body_draw_dict.Add($tmp_body_struct_ptr_str, True)
+    __main_body(body_index).prev_screen_x = -1
+    __main_body(body_index).prev_screen_y = -1
+    __main_body(body_index).curr_screen_x = -1
+    __main_body(body_index).curr_screen_y = -1
+    __main_body(body_index).prev_angle_degrees = -1
+    __main_body(body_index).curr_angle_degrees = -1
+    __main_body(body_index).width2 = _ArrayMax(__main_shape(shape_index).vertice, 1, -1, -1, 0)
+    __main_body(body_index).height2 = _ArrayMax(__main_shape(shape_index).vertice, 1, -1, -1, 1)
+    __main_body(body_index).out_of_bounds_behaviour = out_of_bounds_behaviour
+    __main_body(body_index).draw2 = 1 ' True
+    
 
     
     

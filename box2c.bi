@@ -83,6 +83,9 @@ Dim Shared b2fixture_setsensor As Sub (byval fixture_ptr As Long Ptr, byval valu
 Dim Shared b2fixture_setuserdata As Sub (byval fixture_ptr As Long Ptr, byval user_data as Long Ptr)
 Dim Shared b2world_createbody As Function (byval world_ptr As long ptr, byval bodyDef_ptr as long ptr) As long ptr
 Dim Shared b2body_setawake As Sub (byval body_ptr As Long Ptr, byval awake as boolean)
+Dim Shared b2body_getangle As Function (byval body_ptr As long ptr) As single
+Dim Shared b2body_settransform As Sub (byval body_ptr As Long Ptr, byval position as b2Vec2, byval angle as single)
+Dim Shared b2body_getposition As Function (byval body_ptr As Long Ptr, byref position as b2Vec2 Ptr)
 
 Declare Sub _Box2C_Startup
 Declare Sub _Box2C_Shutdown
@@ -104,6 +107,10 @@ Declare Sub _Box2C_b2Fixture_SetSensor(byval fixture_ptr As Long Ptr, byval valu
 Declare Sub _Box2C_b2Fixture_SetUserData(byval fixture_ptr As Long Ptr, byval user_data as Long Ptr)
 Declare Function _Box2C_b2World_CreateBody(byval world_ptr As long ptr, byval bodyDef_ptr as long ptr) As long ptr
 Declare Sub _Box2C_b2Body_SetAwake(byval body_ptr As Long Ptr, byval awake as boolean)
+Declare Function _Box2C_b2Body_GetAngle(byval body_ptr As long ptr) As single
+Declare Sub _Box2C_b2Body_SetPosition(byval body_ptr As Long Ptr, byval x as single, byval y as single)
+Declare Function _Box2C_b2Body_GetPosition(byval body_ptr As Long Ptr) as b2Vec2
+Declare Sub _Box2C_b2Body_SetAngle(byval body_ptr As Long Ptr, byval angle as single)
 ' ===============================================================================================================================
 
 ' #VARIABLES# ===================================================================================================================
@@ -143,6 +150,9 @@ Sub _Box2C_Startup
 	b2fixture_setuserdata = DyLibSymbol( box2c_library, "b2fixture_setuserdata" )
 	b2world_createbody = DyLibSymbol( box2c_library, "b2world_createbody" )
 	b2body_setawake = DyLibSymbol( box2c_library, "b2body_setawake" )
+	b2body_getangle = DyLibSymbol( box2c_library, "b2body_getangle" )
+	b2body_settransform = DyLibSymbol( box2c_library, "b2body_settransform" )
+	b2body_getposition = DyLibSymbol( box2c_library, "b2body_getposition" )
 
 End Sub
 
@@ -737,4 +747,94 @@ Sub _Box2C_b2Body_SetAwake(byval body_ptr As Long Ptr, byval awake as boolean)
 	
 	b2body_setawake(body_ptr, awake)
 End Sub
+
+
+' #FUNCTION# ====================================================================================================================
+' Name...........: _Box2C_b2Body_SetPosition
+' Description ...: Sets the position (vector) of a body (b2Body)
+' Syntax.........: _Box2C_b2Body_SetPosition($body_ptr, $x, $y)
+' Parameters ....: $body_ptr - a pointer to the body (b2Body)
+'				   $x - the horizontal position / vector
+'				   $y - the vertical position / vector
+' Return values .: Success - True
+'				   Failure - False
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Sub _Box2C_b2Body_SetPosition(byval body_ptr As Long Ptr, byval x as single, byval y as single)
+
+    dim as b2Vec2 position => (x, y)
+	dim as single angle = _Box2C_b2Body_GetAngle(body_ptr)
+    b2body_settransform(body_ptr, position, angle)
+End Sub
+
+
+' #FUNCTION# ====================================================================================================================
+' Name...........: _Box2C_b2Body_GetAngle
+' Description ...: Gets the angle (radians) of a body (b2Body)
+' Syntax.........: _Box2C_b2Body_GetAngle($body_ptr)
+' Parameters ....: $body_ptr - a pointer to the body (b2Body)
+' Return values .: The angle (radians) of the body (b2Body)
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Function _Box2C_b2Body_GetAngle(byval body_ptr As long ptr) As single
+    
+	Dim As single fred3 = b2body_getangle(body_ptr)
+	Return fred3
+End function
+
+
+' #FUNCTION# ====================================================================================================================
+' Name...........: _Box2C_b2Body_SetAngle
+' Description ...: Sets the angle (radians) of a body (b2Body)
+' Syntax.........: _Box2C_b2Body_SetAngle($body_ptr, $angle)
+' Parameters ....: $body_ptr - a pointer to the body (b2Body)
+'				   $angle - the angle (radians)
+' Return values .: Success - True
+'				   Failure - False
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Sub _Box2C_b2Body_SetAngle(byval body_ptr As Long Ptr, byval angle as single)
+
+    dim as b2Vec2 position = _Box2C_b2Body_GetPosition(body_ptr)
+	dim as single angle = _Box2C_b2Body_GetAngle(body_ptr)
+    b2body_settransform(body_ptr, position, angle)
+End Sub
+
+
+' #FUNCTION# ====================================================================================================================
+' Name...........: _Box2C_b2Body_GetPosition
+' Description ...: Gets the position (vector) of a body (b2Body)
+' Syntax.........: _Box2C_b2Body_GetPosition($body_ptr)
+' Parameters ....: $body_ptr - a pointer to the body (b2Body)
+' Return values .: A vector (2D element array) of the position of the body (b2Body)
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Function _Box2C_b2Body_GetPosition(byval body_ptr As Long Ptr) as b2Vec2
+
+    dim as b2Vec2 position => (x, y)
+    dim as b2Vec2 ptr position_ptr = @position
+    b2body_getposition(body_ptr, position_ptr)
+    return position
+End Function
+
 

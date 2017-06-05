@@ -32,7 +32,7 @@ _Box2C_Startup
 
 ' Setup the Box2D World
 Dim As b2Vec2 gravity => (0, -10)
-_Box2C_b2World_Constructor(gravity, 1)
+__world_ptr = _Box2C_b2World_Constructor(gravity, 1)
 
 ' Setup the Box2D Shapes
 
@@ -42,6 +42,14 @@ dim as integer crate_shape_index = _Box2C_b2ShapeDict_AddItem_SFML(1, -0.125, -0
 ' Setup the Box2D Body Definitions
 
 dim as integer platform_bodydef_index = _Box2C_b2BodyDefDict_AddItem(Box2C_b2_staticBody, 0, -4, 0, 0, 0)
+dim as integer platform2_bodydef_index = _Box2C_b2BodyDefDict_AddItem(Box2C_b2_staticBody, -4.5, -2, -0.785398, 0, 0)
+dim as integer platform3_bodydef_index = _Box2C_b2BodyDefDict_AddItem(Box2C_b2_staticBody, +4.5, -2, +0.785398, 0, 0)
+dim as integer falling_bodydef_index = _Box2C_b2BodyDefDict_AddItem(Box2C_b2_dynamicBody, 0, 4, 0, 0, 0)
+
+' Setup the Box2D Bodies and SFML Sprites
+
+dim as integer platform_body_index = _Box2C_b2BodyDict_AddItem_SFML(platform_bodydef_index, platform_shape_index, 0, 0, 0, "", "", "", 0, 0, 0)
+'Local $platform_body_ptr = _Box2C_b2BodyDict_AddItem_SFML($platform_bodydef_ptr, $platform_shape_ptr, 0, 0, 0, "", "", "", 0, 0, 0)
 
 'sleep
 

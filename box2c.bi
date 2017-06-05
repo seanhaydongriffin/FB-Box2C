@@ -63,11 +63,26 @@ type b2BodyDef
     gravityScale as single
 end type
 
+type b2FixtureDef
+    categoryBits as ushort
+    maskBits as ushort
+    groupIndex as short
+end type
+
 ' ===============================================================================================================================
 
 	
 ' #FUNCTIONS# ===================================================================================================================
 Dim Shared b2world_constructor As Function (byval gravity As b2Vec2, byval doSleep as Boolean) As Long Ptr
+Dim Shared b2body_createfixturefromshape As Function (byval body_ptr As long ptr, byval shape_ptr as long ptr, byval density as single) As long ptr
+Dim Shared b2fixture_setdensity As Sub (byval fixture_ptr As Long Ptr, byval value as single)
+Dim Shared b2fixture_setrestitution As Sub (byval fixture_ptr As Long Ptr, byval value as single)
+Dim Shared b2fixture_setfriction As Sub (byval fixture_ptr As Long Ptr, byval value as single)
+Dim Shared b2fixture_setfilterdata As Sub (byval fixture_ptr As Long Ptr, byval dynamicBox_fixture_filter as b2FixtureDef)
+Dim Shared b2fixture_setsensor As Sub (byval fixture_ptr As Long Ptr, byval value as boolean)
+Dim Shared b2fixture_setuserdata As Sub (byval fixture_ptr As Long Ptr, byval user_data as Long Ptr)
+Dim Shared b2world_createbody As Function (byval world_ptr As long ptr, byval bodyDef_ptr as long ptr) As long ptr
+Dim Shared b2body_setawake As Sub (byval body_ptr As Long Ptr, byval awake as boolean)
 
 Declare Sub _Box2C_Startup
 Declare Sub _Box2C_Shutdown
@@ -80,6 +95,15 @@ Declare Function _Box2C_b2PolygonShape_CrossProductVectorVector(x1 as single, y1
 Declare Function _Box2C_b2PolygonShape_CrossProductVectorScalar(x as single, y as single, s as single) as b2Vec2
 Declare Function _Box2C_b2PolygonShape_Normalize(vector as b2Vec2) as b2Vec2
 Declare Function _Box2C_b2BodyDef_Constructor(type2 as integer = 2, position_x as single = 0, position_y as single = 0, angle as single = 0, linerVelocity_x as single = 0, linerVelocity_y as single = 0, angularVelocity as single = 0, linearDamping as single = 0, angularDamping as single = 0, allowSleep as boolean = 1, awake as boolean = 1, fixedRotation as boolean = 0, bullet as boolean = 0, active as boolean = 1, userData as long ptr = NULL, gravityScale as single = 1) As b2BodyDef
+Declare Function _Box2C_b2World_CreateFixtureFromShape(byval body_ptr As long ptr, byval shape_ptr as long ptr, byval density as single) As long ptr
+Declare Sub _Box2C_b2Fixture_SetDensity(byval fixture_ptr As Long Ptr, byval value as single)
+Declare Sub _Box2C_b2Fixture_SetRestitution(byval fixture_ptr As Long Ptr, byval value as boolean)
+Declare Sub _Box2C_b2Fixture_SetFriction(byval fixture_ptr As Long Ptr, byval value as single)
+Declare Sub _Box2C_b2Fixture_SetFilterData(byval fixture_ptr As Long Ptr, byval dynamicBox_fixture_filter as b2FixtureDef)
+Declare Sub _Box2C_b2Fixture_SetSensor(byval fixture_ptr As Long Ptr, byval value as single)
+Declare Sub _Box2C_b2Fixture_SetUserData(byval fixture_ptr As Long Ptr, byval user_data as Long Ptr)
+Declare Function _Box2C_b2World_CreateBody(byval world_ptr As long ptr, byval bodyDef_ptr as long ptr) As long ptr
+Declare Sub _Box2C_b2Body_SetAwake(byval body_ptr As Long Ptr, byval awake as boolean)
 ' ===============================================================================================================================
 
 ' #VARIABLES# ===================================================================================================================
@@ -110,6 +134,15 @@ Sub _Box2C_Startup
 	
 	' create the Box2C library functions for the Box2C DLL
 	b2world_constructor = DyLibSymbol( box2c_library, "b2world_constructor" )
+	b2body_createfixturefromshape = DyLibSymbol( box2c_library, "b2body_createfixturefromshape" )
+	b2fixture_setdensity = DyLibSymbol( box2c_library, "b2fixture_setdensity" )
+	b2fixture_setrestitution = DyLibSymbol( box2c_library, "b2fixture_setrestitution" )
+	b2fixture_setfriction = DyLibSymbol( box2c_library, "b2fixture_setfriction" )
+	b2fixture_setfilterdata = DyLibSymbol( box2c_library, "b2fixture_setfilterdata" )
+	b2fixture_setsensor = DyLibSymbol( box2c_library, "b2fixture_setsensor" )
+	b2fixture_setuserdata = DyLibSymbol( box2c_library, "b2fixture_setuserdata" )
+	b2world_createbody = DyLibSymbol( box2c_library, "b2world_createbody" )
+	b2body_setawake = DyLibSymbol( box2c_library, "b2body_setawake" )
 
 End Sub
 
@@ -474,4 +507,234 @@ Function _Box2C_b2BodyDef_Constructor(type2 as integer = 2, position_x as single
 End Function
 
 
+
+' #FUNCTION# ====================================================================================================================
+' Name...........: _Box2C_b2World_CreateFixture
+' Description ...: Creates a fixture for a shape and body combination
+' Syntax.........: _Box2C_b2World_CreateFixture($body_ptr, $shape_ptr, $density, $restitution, $friction, $filter_category_bits, $filter_mask_bits, $filter_group_index, $is_sensor, $user_data)
+' Parameters ....: $body_ptr - a pointer to the body (b2Body)
+'				   $shape_ptr - a pointer to the shape (b2...)
+'				   $density -
+'				   $restitution -
+'				   $friction -
+'				   $filter_category_bits -
+'				   $filter_mask_bits -
+'				   $filter_group_index -
+'				   $is_sensor -
+'				   $user_data -
+' Return values .: Success - a pointer (PTR) to the fixture (b2Fixture) structure
+'				   Failure - False
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Function _Box2C_b2World_CreateFixture(byval body_ptr as long ptr, byval shape_ptr as long ptr, byval density as single, byval restitution as single, byval friction as single, byval filter_category_bits as ushort, byval filter_mask_bits as ushort, byval filter_group_index as short, byval is_sensor as boolean, byval user_data as long ptr = NULL) As long ptr
+
+	Dim As long ptr fixture_ptr = _Box2C_b2World_CreateFixtureFromShape(body_ptr, shape_ptr, density)
+
+'    _Box2C_b2Fixture_SetDensity(fixture_ptr, 1)
+    _Box2C_b2Fixture_SetRestitution(fixture_ptr, restitution)
+    _Box2C_b2Fixture_SetFriction(fixture_ptr, friction)
+
+    dim as b2FixtureDef dynamicBox_fixture_filter => (filter_category_bits, filter_mask_bits, filter_group_index)
+    _Box2C_b2Fixture_SetFilterData(fixture_ptr, dynamicBox_fixture_filter)
+    
+    _Box2C_b2Fixture_SetSensor(fixture_ptr, is_sensor)
+    _Box2C_b2Fixture_SetUserData(fixture_ptr, user_data)
+
+	Return fixture_ptr
+End Function
+
+
+' #FUNCTION# ====================================================================================================================
+' Name...........: _Box2C_b2World_CreateFixtureFromShape
+' Description ...: Creates a fixture for a shape and body combination
+' Syntax.........: _Box2C_b2World_CreateFixtureFromShape($body_ptr, $shape_ptr, $density)
+' Parameters ....: $body_ptr - a pointer to the body (b2Body)
+'				   $shape_ptr - a pointer to the shape (b2...)
+'				   $density -
+' Return values .: Success - a pointer (PTR) to the fixture (b2Fixture) structure
+'				   Failure - False
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Function _Box2C_b2World_CreateFixtureFromShape(byval body_ptr As long ptr, byval shape_ptr as long ptr, byval density as single) As long ptr
+    
+	Dim As long ptr fred3 = b2body_createfixturefromshape(body_ptr, shape_ptr, density)
+	Return fred3
+End function
+
+
+' #FUNCTION# ====================================================================================================================
+' Name...........: _Box2C_b2Fixture_SetDensity
+' Description ...: Sets the density of a fixture (b2Fixture)
+' Syntax.........: _Box2C_b2Fixture_SetDensity($fixture_ptr, $value)
+' Parameters ....: $fixture_ptr - a pointer to the fixture (b2Fixture)
+'				   $value - the density value
+' Return values .: Success - True
+'				   Failure - False
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Sub _Box2C_b2Fixture_SetDensity(byval fixture_ptr As Long Ptr, byval value as single)
+	
+	b2fixture_setdensity(fixture_ptr, value)
+End Sub
+
+
+' #FUNCTION# ====================================================================================================================
+' Name...........: _Box2C_b2Fixture_SetRestitution
+' Description ...: Sets the restitution of a fixture (b2Fixture)
+' Syntax.........: _Box2C_b2Fixture_SetRestitution($fixture_ptr, $value)
+' Parameters ....: $fixture_ptr - a pointer to the fixture (b2Fixture)
+'				   $value - the restitution value
+' Return values .: Success - True
+'				   Failure - False
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Sub _Box2C_b2Fixture_SetRestitution(byval fixture_ptr As Long Ptr, byval value as single)
+	
+	b2fixture_setrestitution(fixture_ptr, value)
+End Sub
+
+
+' #FUNCTION# ====================================================================================================================
+' Name...........: _Box2C_b2Fixture_SetFriction
+' Description ...: Sets the friction of a fixture (b2Fixture)
+' Syntax.........: _Box2C_b2Fixture_SetFriction($fixture_ptr, $value)
+' Parameters ....: $fixture_ptr - a pointer to the fixture (b2Fixture)
+'				   $value - the friction value
+' Return values .: Success - True
+'				   Failure - False
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Sub _Box2C_b2Fixture_SetFriction(byval fixture_ptr As Long Ptr, byval value as single)
+	
+	b2fixture_setfriction(fixture_ptr, value)
+End Sub
+
+
+' #FUNCTION# ====================================================================================================================
+' Name...........: _Box2C_b2Fixture_SetFilterData
+' Description ...: 
+' Syntax.........: _Box2C_b2Fixture_SetFilterData(fixture_ptr, dynamicBox_fixture_filter)
+' Parameters ....: 
+' Return values .: Success - True
+'				   Failure - 0
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Sub _Box2C_b2Fixture_SetFilterData(byval fixture_ptr As Long Ptr, byval dynamicBox_fixture_filter as b2FixtureDef)
+
+    b2fixture_setfilterdata(fixture_ptr, dynamicBox_fixture_filter)
+End Sub
+
+
+' #FUNCTION# ====================================================================================================================
+' Name...........: _Box2C_b2Fixture_SetSensor
+' Description ...: Sets the sensor of a fixture (b2Fixture)
+' Syntax.........: _Box2C_b2Fixture_SetSensor($fixture_ptr, $value)
+' Parameters ....: $fixture_ptr - a pointer to the fixture (b2Fixture)
+'				   $value - True will turn the sensor on, False will turn the sensor off
+' Return values .: Success - True
+'				   Failure - False
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Sub _Box2C_b2Fixture_SetSensor(byval fixture_ptr As Long Ptr, byval value as boolean)
+	
+	b2fixture_setsensor(fixture_ptr, value)
+End Sub
+
+
+' #FUNCTION# ====================================================================================================================
+' Name...........: _Box2C_b2Fixture_SetUserData
+' Description ...: 
+' Syntax.........: _Box2C_b2Fixture_SetUserData(fixture_ptr, dynamicBox_fixture_filter)
+' Parameters ....: 
+' Return values .: Success - True
+'				   Failure - 0
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Sub _Box2C_b2Fixture_SetUserData(byval fixture_ptr As Long Ptr, byval user_data as Long Ptr)
+
+    b2fixture_setuserdata(fixture_ptr, user_data)
+End Sub
+
+
+' #FUNCTION# ====================================================================================================================
+' Name...........: _Box2C_b2World_CreateBody
+' Description ...: Creates a body in a world from a body definition
+' Syntax.........: _Box2C_b2World_CreateBody($world_ptr, $bodyDef_ptr)
+' Parameters ....: $world_ptr - a pointer (PTR) to the world (b2World) to create the body within
+'				   $bodyDef_ptr - a pointer (PTR) to the definition of the body (b2BodyDef)
+' Return values .: Success - a pointer (PTR) to the body (b2Body) structure (STRUCT)
+'				   Failure - 0
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Function _Box2C_b2World_CreateBody(byval world_ptr As long ptr, byval bodyDef_ptr as long ptr) As long ptr
+    
+	Dim As long ptr fred3 = b2world_createbody(world_ptr, bodyDef_ptr)
+	Return fred3
+End function
+
+
+' #FUNCTION# ====================================================================================================================
+' Name...........: _Box2C_b2Body_SetAwake
+' Description ...: Sets the awake state of a body (b2Body)
+' Syntax.........: _Box2C_b2Body_SetAwake($body_ptr, $awake)
+' Parameters ....: $body_ptr - a pointer to the body (b2Body)
+'				   $awake - True for awake, False for sleep
+' Return values .: Success - True
+'				   Failure - False
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Sub _Box2C_b2Body_SetAwake(byval body_ptr As Long Ptr, byval awake as boolean)
+	
+	b2body_setawake(body_ptr, awake)
+End Sub
 

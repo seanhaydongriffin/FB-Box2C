@@ -539,7 +539,6 @@ End Function
 Sub _CSFML_sfRenderWindow_setVerticalSyncEnabled(byval renderWindow As Long Ptr, byval enabled as Boolean)
 	
 	sfRenderWindow_setVerticalSyncEnabled(renderWindow, enabled)
-	
 End Sub
 
 'Func  _CSFML_sfRenderWindow_setVerticalSyncEnabled($renderWindow, $enabled)

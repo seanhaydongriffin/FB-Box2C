@@ -14,6 +14,19 @@ Const as single __epsilon = 0.00001
 
 
 ' #ENUMERATIONS# ===================================================================================================================
+Enum Box2C_b2Shape_m_type
+    Box2C_e_circle
+    Box2C_e_edge
+    Box2C_e_polygon
+    Box2C_e_chain
+    Box2C_e_typeCount
+End Enum
+
+Enum Box2C_b2Body_type
+    Box2C_b2_staticBody
+    Box2C_b2_kinematicBody
+    Box2C_b2_dynamicBody
+End Enum
 ' ===============================================================================================================================
 
 
@@ -23,45 +36,6 @@ type b2Vec2
     y as Single
 end type
 
-'type b2PolygonShapePortable
-'    m_type as integer
-'    m_radius as single
-'    m_centroid_x as single
-'    m_centroid_y as single
-'    m_vertice_1_x as single
-'    m_vertice_1_y as single
-'    m_vertice_2_x as single
-'    m_vertice_2_y as single
-'    m_vertice_3_x as single
-'    m_vertice_3_y as single
-'    m_vertice_4_x as single
-'    m_vertice_4_y as single
-'    m_vertice_5_x as single
-'    m_vertice_5_y as single
-'    m_vertice_6_x as single
-'    m_vertice_6_y as single
-'    m_vertice_7_x as single
-'    m_vertice_7_y as single
-'    m_vertice_8_x as single
-'    m_vertice_8_y as single
-'    m_normal_1_x as single
-'    m_normal_1_y as single
-'    m_normal_2_x as single
-'    m_normal_2_y as single
-'    m_normal_3_x as single
-'    m_normal_3_y as single
-''    m_normal_4_x as single
-'    m_normal_4_y as single
-'    m_normal_5_x as single
-'    m_normal_5_y as single
-'    m_normal_6_x as single
-'    m_normal_6_y as single
-'    m_normal_7_x as single
-'    m_normal_7_y as single
-'    m_normal_8_x as single
-'    m_normal_8_y as single
-'    m_vertexCount as integer
-'end type
 
 type b2PolygonShapePortable
     m_type as integer
@@ -72,10 +46,25 @@ type b2PolygonShapePortable
     m_vertexCount as integer
 end type
 
+type b2BodyDef
+    type2 as integer
+    position as b2Vec2
+    angle as single
+    linerVelocity as b2Vec2
+    angularVelocity as single
+    linearDamping as single
+    angularDamping as single
+    allowSleep as boolean
+    awake as boolean
+    fixedRotation as boolean
+    bullet as boolean
+    active as boolean
+    userData as long ptr
+    gravityScale as single
+end type
+
 ' ===============================================================================================================================
 
-' #SUBROUTINES# ===================================================================================================================
-' ===============================================================================================================================
 	
 ' #FUNCTIONS# ===================================================================================================================
 Dim Shared b2world_constructor As Function (byval gravity As b2Vec2, byval doSleep as Boolean) As Long Ptr
@@ -90,6 +79,7 @@ Declare Function _Box2C_b2PolygonShape_ComputeCentroid(vertices() As b2Vec2) As 
 Declare Function _Box2C_b2PolygonShape_CrossProductVectorVector(x1 as single, y1 as single, x2 as single, y2 as single) as single
 Declare Function _Box2C_b2PolygonShape_CrossProductVectorScalar(x as single, y as single, s as single) as b2Vec2
 Declare Function _Box2C_b2PolygonShape_Normalize(vector as b2Vec2) as b2Vec2
+Declare Function _Box2C_b2BodyDef_Constructor(type2 as integer = 2, position_x as single = 0, position_y as single = 0, angle as single = 0, linerVelocity_x as single = 0, linerVelocity_y as single = 0, angularVelocity as single = 0, linearDamping as single = 0, angularDamping as single = 0, allowSleep as boolean = 1, awake as boolean = 1, fixedRotation as boolean = 0, bullet as boolean = 0, active as boolean = 1, userData as long ptr = NULL, gravityScale as single = 1) As b2BodyDef
 ' ===============================================================================================================================
 
 ' #VARIABLES# ===================================================================================================================
@@ -446,3 +436,42 @@ Function _Box2C_b2PolygonShape_Normalize(vector as b2Vec2) as b2Vec2
 
 	Return vector_out
 End Function
+
+
+' #FUNCTION# ====================================================================================================================
+' Name...........: _Box2C_b2BodyDef_Constructor
+' Description ...: Constructs a b2BodyDef structure for a box shape.
+' Syntax.........: _Box2C_b2BodyDef_Constructor($type, $position_x, $position_y, $angle, $linearVelocity_x, $linearVelocity_y, $angularVelocity, $linearDamping, $angularDamping, $allowSleep, $awake, $fixedRotation, $bullet, $active, $userData, $gravityScale)
+' Parameters ....: $type -
+'				   $position_x -
+'				   $position_y -
+'				   $angle -
+'				   $linearVelocity_x -
+'				   $linearVelocity_y -
+'				   $angularVelocity -
+'				   $linearDamping -
+'				   $angularDamping -
+'				   $allowSleep -
+'				   $awake -
+'				   $fixedRotation -
+'				   $bullet -
+'				   $active -
+'				   $userData -
+'				   $gravityScale -
+' Return values .: Success - the b2BodyDef structure (STRUCT).
+'				   Failure - 0
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Function _Box2C_b2BodyDef_Constructor(type2 as integer = 2, position_x as single = 0, position_y as single = 0, angle as single = 0, linerVelocity_x as single = 0, linerVelocity_y as single = 0, angularVelocity as single = 0, linearDamping as single = 0, angularDamping as single = 0, allowSleep as boolean = 1, awake as boolean = 1, fixedRotation as boolean = 0, bullet as boolean = 0, active as boolean = 1, userData as long ptr = NULL, gravityScale as single = 1) As b2BodyDef
+
+    Dim As b2BodyDef body_def => (type2, (position_x, position_y), angle, (linerVelocity_x, linerVelocity_y), angularVelocity, linearDamping, angularDamping, allowSleep, awake, fixedRotation, bullet, active, userData, gravityScale)
+	Return body_def
+End Function
+
+
+

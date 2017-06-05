@@ -14,18 +14,28 @@
 
 ' #TYPES# ===================================================================================================================
 type shape
-    guid as integer
     vertice(8) as b2Vec2
     num_vertices as integer
+    created as boolean
+    box2c_shape as b2PolygonShapePortable
+    image_file_path as string
+    image_ptr as long ptr
+end type
+'    b2PolygonShape_ptr as long ptr
+
+type body_def
+    created as boolean
+    box2c_body_def as b2BodyDef
 end type
 ' ===============================================================================================================================
 
 	
 ' #FUNCTIONS# ===================================================================================================================
 'Declare Function _Box2C_b2ShapeDict_AddItem_SFML(byval type2 as integer, xxx() as integer, byval guid As integer, byval shape_image_file_path as string) As integer
-Declare Function _Box2C_b2ShapeDict_AddItem_SFML(byval type2 as integer, byval guid As integer, byval shape_image_file_path as string) As integer
+Declare Function _Box2C_b2ShapeDict_AddItem_SFML(byval type2 as integer, byval vertice1x as single, byval vertice1y as single, byval vertice2x as single, byval vertice2y as single, byval vertice3x as single, byval vertice3y as single, byval vertice4x as single, byval vertice4y as single, byval vertice5x as single, byval vertice5y as single, byval vertice6x as single, byval vertice6y as single, byval vertice7x as single, byval vertice7y as single, byval vertice8x as single, byval vertice8y as single, byval num_vertices as integer, byval shape_image_file_path as string) As integer
 'Declare Function _Box2C_b2ShapeDict_AddItem_SFML(byval type2 as integer, radius_vertice_ptr As b2Vec2 ptr, byval shape_image_file_path as string) As integer
 'Declare Function _Box2C_b2ShapeDict_AddItem_SFML(byval type2 as integer, byval shape_image_file_path as string) As integer
+Declare Function _Box2C_b2BodyDefDict_AddItem(byval body_type as integer, byval initial_x as single = 0, byval initial_y as single = 0, byval initial_angle as single = 0, byval linearDamping as single = 0, byval angularDamping as single = 0) As integer
 
 ' ===============================================================================================================================
 
@@ -36,8 +46,9 @@ Declare Function _Box2C_b2ShapeDict_AddItem_SFML(byval type2 as integer, byval g
 'redim preserve __shape_struct_arr(0)
 'dim shared as b2Vec2 __shape_vertice_arr()
 'redim preserve __shape_vertice_arr(0)
-dim shared as shape __main_shape()
-redim __main_shape(0)
+dim shared as shape __main_shape(100)
+'redim __main_shape(0)
+dim shared as body_def __main_body_def(100)
 
 
 
@@ -74,48 +85,43 @@ redim __main_shape(0)
 ' Link ..........:
 ' Example .......:
 ' ===============================================================================================================================
-'Function _Box2C_b2ShapeDict_AddItem_SFML(byval type2 as integer, xxx() as integer, byval guid As integer, byval shape_image_file_path as string) As integer
-Function _Box2C_b2ShapeDict_AddItem_SFML(byval type2 as integer, byval guid As integer, byval shape_image_file_path as string) As integer
-'Function _Box2C_b2ShapeDict_AddItem_SFML(byval type2 as integer, radius_vertice_ptr As b2Vec2 ptr, byval shape_image_file_path as string) As integer
-'Function _Box2C_b2ShapeDict_AddItem_SFML(byval type2 as integer, byval shape_image_file_path as string) As integer
-
-    dim as shape ptr main_shape_ptr = @__main_shape(0)
+Function _Box2C_b2ShapeDict_AddItem_SFML(byval type2 as integer, byval vertice1x as single, byval vertice1y as single, byval vertice2x as single, byval vertice2y as single, byval vertice3x as single, byval vertice3y as single, byval vertice4x as single, byval vertice4y as single, byval vertice5x as single, byval vertice5y as single, byval vertice6x as single, byval vertice6y as single, byval vertice7x as single, byval vertice7y as single, byval vertice8x as single, byval vertice8y as single, byval num_vertices as integer, byval shape_image_file_path as string) As integer
     
-    ' following is a debug - for educational purposes
+    ' find a main shape that hasn't been created (created = 0)
+    dim as integer shape_index
     
-'    dim as b2Vec2 ptr main_shape_vertice_ptr = @(*(main_shape_ptr).vertice(0))
-'    dim as b2Vec2 tmp_vertice
-    
- '   for i as integer = 0 to (len(main_shape_vertice_ptr) - 1)
-   
- '       tmp_vertice = *(main_shape_vertice_ptr + i)
- '       print tmp_vertice.x
- '       print tmp_vertice.y
- '   next
-
-    
-
-
-'    dim as b2Vec2 vertice(8) = __main_shape(0)
-
- '   dim as integer tt = len(radius_vertice_ptr)
-  '  print tt
-
-'    dim as b2Vec2 fff
-    
- '   for i as integer = 0 to (len(radius_vertice_ptr) - 1)
+    for shape_index = 0 to (ubound(__main_shape) - 1)
         
- '       fff = *(radius_vertice_ptr + i)
- '       print fff.x
- '       print fff.y
- '   next
-  '  print *radius_vertice_ptr
-'    dim as b2Vec2 radius_vertice(4)
+        if __main_shape(shape_index).created = 0 then
+            
+            exit for
+        endif
+    next
     
- '   radius_vertice(0) = *radius_vertice_ptr
-  '  print ubound(radius_vertice)
-   ' print radius_vertice(1).x
-    'print radius_vertice(1).y
+    ' add the vertices and image file path to the shape
+    __main_shape(shape_index).vertice(0).x = vertice1x
+    __main_shape(shape_index).vertice(0).y = vertice1y
+    __main_shape(shape_index).vertice(1).x = vertice2x
+    __main_shape(shape_index).vertice(1).y = vertice2y
+    __main_shape(shape_index).vertice(2).x = vertice3x
+    __main_shape(shape_index).vertice(2).y = vertice3y
+    __main_shape(shape_index).vertice(3).x = vertice4x
+    __main_shape(shape_index).vertice(3).y = vertice4y
+    __main_shape(shape_index).vertice(4).x = vertice5x
+    __main_shape(shape_index).vertice(4).y = vertice5y
+    __main_shape(shape_index).vertice(5).x = vertice6x
+    __main_shape(shape_index).vertice(5).y = vertice6y
+    __main_shape(shape_index).vertice(6).x = vertice7x
+    __main_shape(shape_index).vertice(6).y = vertice7y
+    __main_shape(shape_index).vertice(7).x = vertice8x
+    __main_shape(shape_index).vertice(7).y = vertice8y
+    __main_shape(shape_index).num_vertices = num_vertices
+    __main_shape(shape_index).created = 1
+    __main_shape(shape_index).image_file_path = shape_image_file_path
+
+    ' get a pointer to the shape in the array
+    dim as shape ptr main_shape_ptr = @__main_shape(shape_index)
+    
 
 	' create a new Box2C Polygone Shape for the new vertices and add it to the internal array of shape structures
 '	Local $tmp_shape_struct
@@ -129,35 +135,55 @@ Function _Box2C_b2ShapeDict_AddItem_SFML(byval type2 as integer, byval guid As i
 '		case $Box2C_e_edge
 
 '			Dim As b2PolygonShapePortable tmp_shape_struct = _Box2C_b2PolygonShape_Constructor(radius_vertice())
-			Dim As b2PolygonShapePortable tmp_shape_struct = _Box2C_b2PolygonShape_Constructor(*(main_shape_ptr).vertice(0))
+			__main_shape(shape_index).box2c_shape = _Box2C_b2PolygonShape_Constructor(*(main_shape_ptr).vertice(0))
 '	EndSwitch
 
-'	dim as b2PolygonShapePortable ptr tmp_shape_struct_ptr = @tmp_shape_struct
-'	Local $tmp_shape_struct_ptr_str = String($tmp_shape_struct_ptr)
- '   redim preserve __shape_struct_ptr_arr(ubound(__shape_struct_ptr_arr) + 1)
- '   __shape_struct_ptr_arr(ubound(__shape_struct_ptr_arr) - 1) = tmp_shape_struct_ptr
- '   redim preserve __shape_struct_arr(ubound(__shape_struct_arr) + 1)
- '   __shape_struct_arr(ubound(__shape_struct_ptr_arr) - 1) = tmp_shape_struct
-
-	' add the new vertices to the internal dictionary of shape vertices
-
-'	if $type = $Box2C_e_edge Then
-
-  '      redim preserve __shape_vertice_arr(ubound(__shape_vertice_arr) + 1)
-  '      __shape_vertice_arr(ubound(__shape_struct_ptr_arr) - 1) = radius_vertice
-
-'		$__shape_vertice_dict.Add($tmp_shape_struct_ptr_str, $radius_vertice)
-'	EndIf
+'    __main_shape(shape_index).b2PolygonShape_ptr = @tmp_shape_struct
 
 	' add the new sfTexture to the internal array of shape images
-'	$__shape_image_file_path_dict.Add($tmp_shape_struct_ptr_str, $shape_image_file_path)
-
-'	Local $tmp_shape_image = _CSFML_sfTexture_createFromFile($shape_image_file_path, Null)
-'	$__shape_image_dict.Add($tmp_shape_struct_ptr_str, $tmp_shape_image)
+    __main_shape(shape_index).image_ptr = sfTexture_createFromFile(__main_shape(shape_index).image_file_path, NULL)
 
 	' return the pointer (dictionary key) of the new shape
-'	Return $tmp_shape_struct_ptr_str
+	Return shape_index
+End Function
 
 
-	Return 1
+' #FUNCTION# ====================================================================================================================
+' Name...........: _Box2C_b2BodyDefDict_AddItem
+' Description ...: A convenience function that adds a body definition (b2BodyDef) to an internal array of body definitions.
+' Syntax.........: _Box2C_b2BodyDefDict_AddItem($body_type, $initial_x, $initial_y, $initial_angle, $linearDamping, $angularDamping)
+' Parameters ....: $body_type
+'				   $initial_x
+'				   $initial_y
+'				   $initial_angle
+'				   $linearDamping
+'				   $angularDamping
+' Return values .: The index of the body definition within the internal array of body definitions.
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Function _Box2C_b2BodyDefDict_AddItem(byval body_type as integer, byval initial_x as single = 0, byval initial_y as single = 0, byval initial_angle as single = 0, byval linearDamping as single = 0, byval angularDamping as single = 0) As integer
+    
+    ' find a main body def that hasn't been created (created = 0)
+    dim as integer body_def_index
+    
+    for body_def_index = 0 to (ubound(__main_body_def) - 1)
+        
+        if __main_body_def(body_def_index).created = 0 then
+            
+            exit for
+        endif
+    next
+    
+    __main_body_def(body_def_index).created = 1
+
+	' create a new Box2C Body Definition for the body type, initial x and y and angles, and add it to the internal array of body definition structures
+	__main_body_def(body_def_index).box2c_body_def = _Box2C_b2BodyDef_Constructor(body_type, initial_x, initial_y, initial_angle, 0, 0, 0, linearDamping, angularDamping, True, True, False, False, True, Null, 1)
+
+	' return the index of the new body definition within the internal array of body definitions
+	Return body_def_index
 End Function

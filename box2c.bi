@@ -850,7 +850,7 @@ Function _Box2C_b2Body_GetPosition(byval body_ptr As Long Ptr) as b2Vec2
     dim as b2Vec2 position
     dim as b2Vec2 ptr position_ptr = @position
     b2body_getposition(body_ptr, position_ptr)
-    print "position x = " & position.x & ", y = " & position.y
+'    print "position x = " & position.x & ", y = " & position.y
     return position
 End Function
 

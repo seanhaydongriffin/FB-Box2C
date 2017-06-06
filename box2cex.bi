@@ -82,6 +82,7 @@ Declare Sub _Box2C_b2World_SetGUIArea(byval width2 as integer, byval height2 as 
 Declare Function _Box2C_b2Vec2_GetGUIPosition(byval world_x as single, byval world_y as single, vertices() As b2Vec2) As GUI_Position
 Declare Function GetShapeWidth(vertices() As b2Vec2) As single
 Declare Function GetShapeHeight(vertices() As b2Vec2) As single
+Declare Sub _Box2C_b2World_Animate_SFML(byval window_ptr As Long Ptr, byval window_color as sfColor, byval info_text_ptr As Long Ptr, byval info_text_string as string, byval draw_info_text_before_body as integer)
 ' ===============================================================================================================================
 
 ' #VARIABLES# ===================================================================================================================
@@ -390,26 +391,26 @@ Function _Box2C_b2BodyDict_AddItem_SFML(byval bodydef_index as integer, byval sh
 	' Add the SFML sprite
     
     ' find a main sprite that hasn't been created (created = 0)
-'    dim as integer sprite_index
+    dim as integer sprite_index
     
-'    for sprite_index = 0 to (ubound(__main_sprite) - 1)
+    for sprite_index = 0 to (ubound(__main_sprite) - 1)
         
-'        if __main_sprite(sprite_index).created = 0 then
+        if __main_sprite(sprite_index).created = 0 then
             
-'            exit for
-'        endif
-'    next
+            exit for
+        endif
+    next
     
-'    __main_sprite(sprite_index).created = 1
-'    __main_sprite(sprite_index).sprite_ptr = _CSFML_sfSprite_create()
-'    _CSFML_sfSprite_setTexture(__main_sprite(sprite_index).sprite_ptr, __main_shape(shape_index).image_ptr, sfTrue)
+    __main_sprite(sprite_index).created = 1
+     __main_sprite(sprite_index).sprite_ptr = _CSFML_sfSprite_create()
+    _CSFML_sfSprite_setTexture(__main_sprite(sprite_index).sprite_ptr, __main_shape(shape_index).image_ptr, sfTrue)
 
-'    Dim As sfVector2f shape_pixel_offset => (-shape_x_pixel_offset, -shape_y_pixel_offset)
-'    __main_sprite(sprite_index).screen_offset.x = -shape_x_pixel_offset
-'    __main_sprite(sprite_index).screen_offset.y = -shape_y_pixel_offset
+    Dim As sfVector2f shape_pixel_offset => (-shape_x_pixel_offset, -shape_y_pixel_offset)
+    __main_sprite(sprite_index).screen_offset.x = -shape_x_pixel_offset
+    __main_sprite(sprite_index).screen_offset.y = -shape_y_pixel_offset
 
 '	_CSFML_sfSprite_setOrigin($__sprite_ptr[$body_struct_ptr_index], _CSFML_sfVector2f_Constructor((($__body_width[$body_struct_ptr_index] / 2) * $__pixels_per_metre) + $shape_x_pixel_offset, (($__body_height[$body_struct_ptr_index] / 2) * $__pixels_per_metre) + $shape_y_pixel_offset))
-'	_CSFML_sfSprite_setOrigin(__main_sprite(sprite_index).sprite_ptr, __main_sprite(sprite_index).screen_offset)
+	_CSFML_sfSprite_setOrigin(__main_sprite(sprite_index).sprite_ptr, __main_sprite(sprite_index).screen_offset)
 
 	' Add the SFML convex shape
 
@@ -550,3 +551,179 @@ Function GetShapeHeight(vertices() As b2Vec2) As single
     return shape_height
     
 End Function
+
+
+
+' #FUNCTION# ====================================================================================================================
+' Name...........: _Box2C_b2World_Animate_SFML
+' Description ...: The animation loop specifically for Box2D and SFML
+' Syntax.........: _Box2C_b2World_Animate_SFML($window_ptr, $window_color, $info_text_ptr, $info_text_string)
+' Parameters ....: $window_ptr
+'				   $window_color
+'				   $info_text_ptr
+'				   $info_text_string
+'				   $draw_info_text_before_body - the index of the body to draw the info text before
+' Return values .: None
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......:
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Sub _Box2C_b2World_Animate_SFML(byval window_ptr As Long Ptr, byval window_color as sfColor, byval info_text_ptr As Long Ptr, byval info_text_string as string, byval draw_info_text_before_body as integer)
+
+	' Transform all the Box2D bodies to SFML sprites
+
+	' converting dictionaries into arrays because arrays (including the conversion to arrays) perform about 6 times faster than dictionaries
+	'	these arrays can only be used to "get" data.  To "set" data we must still reference the associated dictionary.
+	'   (~0 ms @ 100 bodies)
+
+'	Local $body_ptr = $__body_out_of_bounds_behaviour_dict.Keys
+'	Local $__body_struct_ptr_arr = $__body_struct_ptr_dict.Items
+'	Local $__body_out_of_bounds_behaviour_arr = $__body_out_of_bounds_behaviour_dict.Items
+'	Local $__body_draw_arr = $__body_draw_dict.Items
+'	Local $__body_curr_screen_x_arr = $__body_curr_screen_x_dict.Items
+'	Local $__body_curr_screen_y_arr = $__body_curr_screen_y_dict.Items
+'	Local $__sprite_ptr_arr = $__sprite_ptr_dict.Items
+
+	' Transform the Box2D bodies and draw SFML sprites
+
+	dim as integer body_num = -1
+
+	While True
+
+		body_num = body_num + 1
+
+		if body_num > (UBound(__main_body) - 1) Then
+
+			Exit While
+		EndIf
+
+'print __main_body(body_num).created
+
+        if __main_body(body_num).created = True then
+
+
+
+            dim as b2Vec2 body_position = _Box2C_b2Body_GetPosition(__main_body(body_num).body_ptr)
+    
+            ' if the body is off-screen (~0 ms @ 100 bodies)
+    '		if $body_position[0] < -8 or $body_position[0] > 8 or $body_position[1] < -6 or $body_position[1] > 6 Then
+    
+    '			if $__body_out_of_bounds_behaviour_arr[$body_num] = 4 Then
+    
+    '				_Box2C_b2BodyArray_SetItemAwake($body_num, False)
+    '				$__body_draw_dict.Item($body_ptr[$body_num]) = False
+    '			EndIf
+    
+    '			if $__body_out_of_bounds_behaviour_arr[$body_num] = 2 Then
+    
+    '				Local $velocity = _Box2C_b2Body_GetLinearVelocity($__body_struct_ptr_arr[$body_num])
+    
+    '				if $body_position[0] < -8 or $body_position[0] > 8 Then
+    
+    '					_Box2C_b2Body_SetPosition($__body_struct_ptr_arr[$body_num], $body_position[0] * 0.99, $body_position[1])
+    '					_Box2C_b2Body_SetLinearVelocity($__body_struct_ptr_arr[$body_num], 0 - $velocity[0], $velocity[1])
+    '				EndIf
+    
+    '				if $body_position[1] < -6 or $body_position[1] > 6 Then
+    
+    '					_Box2C_b2Body_SetPosition($__body_struct_ptr_arr[$body_num], $body_position[0], $body_position[1] * 0.99)
+    '					_Box2C_b2Body_SetLinearVelocity($__body_struct_ptr_arr[$body_num], $velocity[0], 0 - $velocity[1])
+    '				EndIf
+    '			EndIf
+    
+    '			if $__body_out_of_bounds_behaviour_arr[$body_num] = 1 Then
+    
+    '				_Box2C_b2Body_Destroy_SFML($body_num)
+    '				$body_num = $body_num - 1
+    '			EndIf
+    '		Else
+    
+                ' Update sprite position (5 ms @ 100 bodies)
+    
+                ' converting the below to C might improve animations by a further 500 frames per seconds
+                
+                __main_body(body_num).curr_screen_x = 400 + (body_position.x * __pixels_per_metre)
+                __main_body(body_num).curr_screen_y = 300 - (body_position.y * __pixels_per_metre)
+                dim as sfVector2f tmp_sprite_position => (__main_body(body_num).curr_screen_x, __main_body(body_num).curr_screen_y)
+                _CSFML_sfSprite_setPosition(__main_sprite(body_num).sprite_ptr, tmp_sprite_position)
+                
+
+'                $__body_curr_screen_x_dict.Item($body_ptr[$body_num]) = $__gui_center_x + ($body_position[0] * $__pixels_per_metre)
+ '               $__body_curr_screen_y_dict.Item($body_ptr[$body_num]) = $__gui_center_y - ($body_position[1] * $__pixels_per_metre)
+  '              _CSFML_sfSprite_setPosition_xy($__sprite_ptr_arr[$body_num], $__body_curr_screen_x_arr[$body_num], $__body_curr_screen_y_arr[$body_num])
+    
+                ' Update sprite rotation (4 ms @ 100 bodies)
+    '			Local $body_angle = _Box2C_b2Body_GetAngle($__body_struct_ptr_arr[$body_num])
+    '			$__body_curr_angle_degrees_dict.Item($body_ptr[$body_num]) = _Degree($body_angle)
+    '			_CSFML_sfSprite_setRotation($__sprite_ptr_arr[$body_num], _Degree($body_angle))
+    '		EndIf
+        endif
+        
+	WEnd
+
+	' Clear the animation frame (~0 ms @ 100 bodies)
+	_CSFML_sfRenderWindow_clear(window_ptr, window_color)
+
+	' converting dictionaries into arrays because arrays (including the conversion to arrays) perform about 6 times faster than dictionaries
+	'	these arrays can only be used to "get" data.  To "set" data we must still reference the associated dictionary.
+
+'	Local $__convex_shape_ptr_arr
+
+'	if $body_num >= $__convex_shape_draw_lower_index and $body_num <= $__convex_shape_draw_upper_index Then
+
+'		$__convex_shape_ptr_arr = $__convex_shape_ptr_dict.Items
+'	EndIf
+
+	body_num = -1
+
+	While True
+
+		body_num = body_num + 1
+
+'		if $body_num > (UBound($__body_draw_arr) - 1) Then
+
+'			ExitLoop
+'		EndIf
+
+        if body_num > (UBound(__main_body) - 1) Then
+
+			Exit While
+		EndIf
+
+        if __main_body(body_num).created = True then
+
+
+            ' if drawing the info text (~0 ms @ 100 bodies)
+   '         if $draw_info_text_before_body > -1 And $body_num = $draw_info_text_before_body Then
+    
+    '            _CSFML_sfRenderWindow_drawTextString($window_ptr, $info_text_ptr, $info_text_string, Null)
+     '       EndIf
+    
+      '      if $__body_draw_arr[$body_num] = True Then
+    
+                ' if drawing sprites (2 ms @ 100 bodies)
+        '        if $body_num >= $__sprite_draw_lower_index and $body_num <= $__sprite_draw_upper_index Then
+    
+                    _CSFML_sfRenderWindow_drawSprite(window_ptr, __main_sprite(body_num).sprite_ptr, Null)
+         '       EndIf
+    
+                ' if drawing convex shapes - disabled in the speed test (~0 ms @ 100 bodies)
+    '			if $body_num >= $__convex_shape_draw_lower_index and $body_num <= $__convex_shape_draw_upper_index Then
+    
+    '				_CSFML_sfRenderWindow_drawConvexShape($window_ptr, $__convex_shape_ptr_arr[$body_num], Null)
+    '			EndIf
+       '     EndIf
+        endif
+        
+	WEnd
+
+	' Display the animation frame (~0 ms @ 100 bodies)
+	_CSFML_sfRenderWindow_display(window_ptr)
+
+End Sub
+
+
+

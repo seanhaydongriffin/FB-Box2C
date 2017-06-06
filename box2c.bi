@@ -74,18 +74,18 @@ end type
 	
 ' #FUNCTIONS# ===================================================================================================================
 Dim Shared b2world_constructor As Function (byval gravity As b2Vec2, byval doSleep as Boolean) As Long Ptr
-Dim Shared b2body_createfixturefromshape As Function (byval body_ptr As long ptr, byval shape_ptr as long ptr, byval density as single) As long ptr
+Dim Shared b2body_createfixturefromshape As Function (byval body_ptr As long ptr, byval shape_ptr as b2PolygonShapePortable ptr, byval density as single) As long ptr
 Dim Shared b2fixture_setdensity As Sub (byval fixture_ptr As Long Ptr, byval value as single)
 Dim Shared b2fixture_setrestitution As Sub (byval fixture_ptr As Long Ptr, byval value as single)
 Dim Shared b2fixture_setfriction As Sub (byval fixture_ptr As Long Ptr, byval value as single)
 Dim Shared b2fixture_setfilterdata As Sub (byval fixture_ptr As Long Ptr, byval dynamicBox_fixture_filter as b2FixtureDef)
 Dim Shared b2fixture_setsensor As Sub (byval fixture_ptr As Long Ptr, byval value as boolean)
 Dim Shared b2fixture_setuserdata As Sub (byval fixture_ptr As Long Ptr, byval user_data as Long Ptr)
-Dim Shared b2world_createbody As Function (byval world_ptr As long ptr, byval bodyDef_ptr as long ptr) As long ptr
+Dim Shared b2world_createbody As Function (byval world_ptr As long ptr, byval bodyDef_ptr as b2BodyDef ptr) As long ptr
 Dim Shared b2body_setawake As Sub (byval body_ptr As Long Ptr, byval awake as boolean)
 Dim Shared b2body_getangle As Function (byval body_ptr As long ptr) As single
 Dim Shared b2body_settransform As Sub (byval body_ptr As Long Ptr, byval position as b2Vec2, byval angle as single)
-Dim Shared b2body_getposition As Function (byval body_ptr As Long Ptr, byref position as b2Vec2 Ptr)
+Dim Shared b2body_getposition As Sub (byval body_ptr As Long Ptr, byref position as b2Vec2 Ptr)
 
 Declare Sub _Box2C_Startup
 Declare Sub _Box2C_Shutdown
@@ -98,14 +98,14 @@ Declare Function _Box2C_b2PolygonShape_CrossProductVectorVector(x1 as single, y1
 Declare Function _Box2C_b2PolygonShape_CrossProductVectorScalar(x as single, y as single, s as single) as b2Vec2
 Declare Function _Box2C_b2PolygonShape_Normalize(vector as b2Vec2) as b2Vec2
 Declare Function _Box2C_b2BodyDef_Constructor(type2 as integer = 2, position_x as single = 0, position_y as single = 0, angle as single = 0, linerVelocity_x as single = 0, linerVelocity_y as single = 0, angularVelocity as single = 0, linearDamping as single = 0, angularDamping as single = 0, allowSleep as boolean = 1, awake as boolean = 1, fixedRotation as boolean = 0, bullet as boolean = 0, active as boolean = 1, userData as long ptr = NULL, gravityScale as single = 1) As b2BodyDef
-Declare Function _Box2C_b2World_CreateFixtureFromShape(byval body_ptr As long ptr, byval shape_ptr as long ptr, byval density as single) As long ptr
+Declare Function _Box2C_b2World_CreateFixtureFromShape(byval body_ptr As long ptr, byval shape_ptr as b2PolygonShapePortable ptr, byval density as single) As long ptr
 Declare Sub _Box2C_b2Fixture_SetDensity(byval fixture_ptr As Long Ptr, byval value as single)
-Declare Sub _Box2C_b2Fixture_SetRestitution(byval fixture_ptr As Long Ptr, byval value as boolean)
+Declare Sub _Box2C_b2Fixture_SetRestitution(byval fixture_ptr As Long Ptr, byval value as single)
 Declare Sub _Box2C_b2Fixture_SetFriction(byval fixture_ptr As Long Ptr, byval value as single)
 Declare Sub _Box2C_b2Fixture_SetFilterData(byval fixture_ptr As Long Ptr, byval dynamicBox_fixture_filter as b2FixtureDef)
-Declare Sub _Box2C_b2Fixture_SetSensor(byval fixture_ptr As Long Ptr, byval value as single)
+Declare Sub _Box2C_b2Fixture_SetSensor(byval fixture_ptr As Long Ptr, byval value as boolean)
 Declare Sub _Box2C_b2Fixture_SetUserData(byval fixture_ptr As Long Ptr, byval user_data as Long Ptr)
-Declare Function _Box2C_b2World_CreateBody(byval world_ptr As long ptr, byval bodyDef_ptr as long ptr) As long ptr
+Declare Function _Box2C_b2World_CreateBody(byval world_ptr As long ptr, byval bodyDef_ptr as b2BodyDef ptr) As long ptr
 Declare Sub _Box2C_b2Body_SetAwake(byval body_ptr As Long Ptr, byval awake as boolean)
 Declare Function _Box2C_b2Body_GetAngle(byval body_ptr As long ptr) As single
 Declare Sub _Box2C_b2Body_SetPosition(byval body_ptr As Long Ptr, byval x as single, byval y as single)
@@ -541,7 +541,7 @@ End Function
 ' Link ..........:
 ' Example .......:
 ' ===============================================================================================================================
-Function _Box2C_b2World_CreateFixture(byval body_ptr as long ptr, byval shape_ptr as long ptr, byval density as single, byval restitution as single, byval friction as single, byval filter_category_bits as ushort, byval filter_mask_bits as ushort, byval filter_group_index as short, byval is_sensor as boolean, byval user_data as long ptr = NULL) As long ptr
+Function _Box2C_b2World_CreateFixture(byval body_ptr as long ptr, byval shape_ptr as b2PolygonShapePortable ptr, byval density as single, byval restitution as single, byval friction as single, byval filter_category_bits as ushort = 1, byval filter_mask_bits as ushort = 65535, byval filter_group_index as short = 0, byval is_sensor as boolean = 0, byval user_data as long ptr = NULL) As long ptr
 
 	Dim As long ptr fixture_ptr = _Box2C_b2World_CreateFixtureFromShape(body_ptr, shape_ptr, density)
 
@@ -575,7 +575,7 @@ End Function
 ' Link ..........:
 ' Example .......:
 ' ===============================================================================================================================
-Function _Box2C_b2World_CreateFixtureFromShape(byval body_ptr As long ptr, byval shape_ptr as long ptr, byval density as single) As long ptr
+Function _Box2C_b2World_CreateFixtureFromShape(byval body_ptr As long ptr, byval shape_ptr as b2PolygonShapePortable ptr, byval density as single) As long ptr
     
 	Dim As long ptr fred3 = b2body_createfixturefromshape(body_ptr, shape_ptr, density)
 	Return fred3
@@ -721,7 +721,7 @@ End Sub
 ' Link ..........:
 ' Example .......:
 ' ===============================================================================================================================
-Function _Box2C_b2World_CreateBody(byval world_ptr As long ptr, byval bodyDef_ptr as long ptr) As long ptr
+Function _Box2C_b2World_CreateBody(byval world_ptr As long ptr, byval bodyDef_ptr as b2BodyDef ptr) As long ptr
     
 	Dim As long ptr fred3 = b2world_createbody(world_ptr, bodyDef_ptr)
 	Return fred3
@@ -811,7 +811,6 @@ End function
 Sub _Box2C_b2Body_SetAngle(byval body_ptr As Long Ptr, byval angle as single)
 
     dim as b2Vec2 position = _Box2C_b2Body_GetPosition(body_ptr)
-	dim as single angle = _Box2C_b2Body_GetAngle(body_ptr)
     b2body_settransform(body_ptr, position, angle)
 End Sub
 
@@ -831,10 +830,9 @@ End Sub
 ' ===============================================================================================================================
 Function _Box2C_b2Body_GetPosition(byval body_ptr As Long Ptr) as b2Vec2
 
-    dim as b2Vec2 position => (x, y)
+    dim as b2Vec2 position
     dim as b2Vec2 ptr position_ptr = @position
     b2body_getposition(body_ptr, position_ptr)
     return position
 End Function
-
 

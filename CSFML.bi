@@ -302,6 +302,7 @@ Dim Shared sfText_setPosition As Sub (byval text As Long Ptr, byval position As 
 Dim Shared sfSprite_setPosition As Sub (byval sprite As Long Ptr, byval position As sfVector2f)
 Dim Shared sfRenderWindow_drawText As Sub (byval renderWindow As Long Ptr, byval object2 As Long Ptr, byval states As Long Ptr)
 Dim Shared sfSprite_getPosition As Function (byval sprite As Long Ptr) As sfVector2f
+Dim Shared sfSprite_setOrigin As Sub (byval sprite As Long Ptr, byval origin As sfVector2f)
 
 Declare Sub _CSFML_Startup
 Declare Sub _CSFML_Shutdown
@@ -330,6 +331,7 @@ Declare Sub _CSFML_sfSprite_setPosition(byval sprite As Long Ptr, byval position
 Declare Sub _CSFML_sfRenderWindow_drawText(byval renderWindow As Long Ptr, byval object2 As Long Ptr, byval states As Long Ptr)
 Declare Function _CSFML_sfText_create_and_set(byval font_ptr As Long Ptr, byval size as uinteger, byval color2 as sfColor, byval x as Single, byval y as Single) As long ptr
 Declare Function _CSFML_sfSprite_getPosition(byval sprite As Long Ptr) As sfVector2f
+Declare Sub _CSFML_sfSprite_setOrigin(byval sprite As Long Ptr, byval origin As sfVector2f)
 ' ===============================================================================================================================
 
 ' #VARIABLES# ===================================================================================================================
@@ -391,6 +393,7 @@ Sub _CSFML_Startup
 	sfSprite_setPosition = DyLibSymbol( csfml_graphics_library, "sfSprite_setPosition" )
 	sfRenderWindow_drawText = DyLibSymbol( csfml_graphics_library, "sfRenderWindow_drawText" )
 	sfSprite_getPosition = DyLibSymbol( csfml_graphics_library, "sfSprite_getPosition" )
+	sfSprite_setOrigin = DyLibSymbol( csfml_graphics_library, "sfSprite_setOrigin" )
 
 
   '  courier_new_font_ptr = sfFont_createFromFile("C:\Windows\Fonts\cour.ttf")
@@ -986,3 +989,26 @@ Function _CSFML_sfText_create_and_set(byval font_ptr As Long Ptr, byval size as 
     return text_ptr
 End Function
 
+
+' #FUNCTION# ====================================================================================================================
+' Name...........: _CSFML_sfSprite_setOrigin
+' Description ...: Set the local origin of a sprite.
+'				   The origin of an object defines the center point for all transformations (position, scale, rotation).
+'				   The coordinates of this point must be relative to the top-left corner of the object, and ignore all
+'				   transformations (position, scale, rotation). The default origin of a sprite Sprite object is (0, 0).
+' Syntax.........: _CSFML_sfSprite_setOrigin($sprite, $origin)
+' Parameters ....: $sprite - Sprite object
+'				   $origin - New origin (sfVector2f)
+' Return values .: Success - True
+'				   Failure - 0
+' Author ........: Sean Griffin
+' Modified.......:
+' Remarks .......:
+' Related .......: _CSFML_sfSprite_create, _CSFML_sfVector2f_Constructor
+' Link ..........:
+' Example .......:
+' ===============================================================================================================================
+Sub _CSFML_sfSprite_setOrigin(byval sprite As Long Ptr, byval origin As sfVector2f)
+
+    sfSprite_setOrigin(sprite, origin)
+End Sub

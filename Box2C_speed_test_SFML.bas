@@ -48,8 +48,10 @@ dim as integer falling_bodydef_index = _Box2C_b2BodyDefDict_AddItem(Box2C_b2_dyn
 
 ' Setup the Box2D Bodies and SFML Sprites
 
-dim as integer platform_body_index = _Box2C_b2BodyDict_AddItem_SFML(platform_bodydef_index, platform_shape_index, 0, 0, 0, "", "", "", 0, 0, 0)
-'Local $platform_body_ptr = _Box2C_b2BodyDict_AddItem_SFML($platform_bodydef_ptr, $platform_shape_ptr, 0, 0, 0, "", "", "", 0, 0, 0)
+dim as integer platform_body_index = _Box2C_b2BodyDict_AddItem_SFML(platform_bodydef_index, platform_shape_index, 0, 0, 0, 999999, 999999, 999999, 0, 0, 0)
+dim as integer platform2_body_ptr = _Box2C_b2BodyDict_AddItem_SFML(platform2_bodydef_index, platform_shape_index, 0, 0, 0, 999999, 999999, 999999, 0, 0, 0)
+dim as integer platform3_body_ptr = _Box2C_b2BodyDict_AddItem_SFML(platform3_bodydef_index, platform_shape_index, 0, 0, 0, 999999, 999999, 999999, 0, 0, 0)
+dim as integer falling_body_ptr = _Box2C_b2BodyDict_AddItem_SFML(falling_bodydef_index, crate_shape_index, 1, 0.2, 0.3, 999999, 999999, 999999, 0, -6.25, -6.25)
 
 'sleep
 
@@ -59,13 +61,15 @@ dim as integer platform_body_index = _Box2C_b2BodyDict_AddItem_SFML(platform_bod
 'dim as longint xxx = _CSFML_sfClock_getElapsedTime(fred)
 'Print xxx
 
+' Setup the GUI for SFML inside the AutoIT GUI
+
 window_ptr = _CSFML_sfRenderWindow_create(800, 600, 16, "xxx", 6, NULL)
 window_hwnd = _CSFML_sfRenderWindow_getSystemHandle(window_ptr)
 _CSFML_sfRenderWindow_setVerticalSyncEnabled(window_ptr, 0)
 courier_new_font_ptr = sfFont_createFromFile("C:\Windows\Fonts\cour.ttf")
 Dim As Long Ptr text_ptr = _CSFML_sfText_create_and_set(courier_new_font_ptr, 14, black, 50, 50)
 
-Dim As Long Ptr texture_ptr = sfTexture_createFromFile(pathname & "\crate.gif", NULL)
+Dim As Long Ptr texture_ptr = _CSFML_sfTexture_createFromFile(pathname & "\crate.gif", NULL)
 print texture_ptr
 Dim As Long Ptr sprite_ptr = _CSFML_sfSprite_create()
 sfSprite_setTexture(sprite_ptr, texture_ptr, sfTrue)

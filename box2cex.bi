@@ -170,7 +170,10 @@ Function _Box2C_b2ShapeDict_AddItem_SFML(byval type2 as integer, byval vertice1x
 
     ' get a pointer to the shape in the array
     dim as shape ptr main_shape_ptr = @__main_shape(shape_index)
-    
+        
+'    print "xxx index=" & shape_index
+'    print "xxx main_shape_ptr=" & main_shape_ptr
+
 
 	' create a new Box2C Polygone Shape for the new vertices and add it to the internal array of shape structures
 '	Local $tmp_shape_struct
@@ -186,6 +189,11 @@ Function _Box2C_b2ShapeDict_AddItem_SFML(byval type2 as integer, byval vertice1x
 '			Dim As b2PolygonShapePortable tmp_shape_struct = _Box2C_b2PolygonShape_Constructor(radius_vertice())
 			__main_shape(shape_index).box2c_shape = _Box2C_b2PolygonShape_Constructor(*(main_shape_ptr).vertice(0))
 '	EndSwitch
+
+    print "shape.box2c_shape m_type=" & __main_shape(shape_index).box2c_shape.m_type & " m_radius=" & __main_shape(shape_index).box2c_shape.m_radius & " m_centroidx=" & __main_shape(shape_index).box2c_shape.m_centroid.x & " m_centroidy=" & __main_shape(shape_index).box2c_shape.m_centroid.y
+    print " m_vertice0=" & __main_shape(shape_index).box2c_shape.m_vertice(0).x & "," & __main_shape(shape_index).box2c_shape.m_vertice(0).y & " m_vertice1=" & __main_shape(shape_index).box2c_shape.m_vertice(1).x & "," & __main_shape(shape_index).box2c_shape.m_vertice(1).y & " m_vertice2=" & __main_shape(shape_index).box2c_shape.m_vertice(2).x & "," & __main_shape(shape_index).box2c_shape.m_vertice(2).y & " m_vertice3=" & __main_shape(shape_index).box2c_shape.m_vertice(3).x & "," & __main_shape(shape_index).box2c_shape.m_vertice(3).y & " m_vertice4=" & __main_shape(shape_index).box2c_shape.m_vertice(4).x & "," & __main_shape(shape_index).box2c_shape.m_vertice(4).y & " m_vertice5=" & __main_shape(shape_index).box2c_shape.m_vertice(5).x & "," & __main_shape(shape_index).box2c_shape.m_vertice(5).y & " m_vertice6=" & __main_shape(shape_index).box2c_shape.m_vertice(6).x & "," & __main_shape(shape_index).box2c_shape.m_vertice(6).y & " m_vertice7=" & __main_shape(shape_index).box2c_shape.m_vertice(7).x & "," & __main_shape(shape_index).box2c_shape.m_vertice(7).y
+    print " m_normal0=" & __main_shape(shape_index).box2c_shape.m_normal(0).x & "," & __main_shape(shape_index).box2c_shape.m_normal(0).y & " m_normal1=" & __main_shape(shape_index).box2c_shape.m_normal(1).x & "," & __main_shape(shape_index).box2c_shape.m_normal(1).y & " m_normal2=" & __main_shape(shape_index).box2c_shape.m_normal(2).x & "," & __main_shape(shape_index).box2c_shape.m_normal(2).y & " m_normal3=" & __main_shape(shape_index).box2c_shape.m_normal(3).x & "," & __main_shape(shape_index).box2c_shape.m_normal(3).y & " m_normal4=" & __main_shape(shape_index).box2c_shape.m_normal(4).x & "," & __main_shape(shape_index).box2c_shape.m_normal(4).y & " m_normal5=" & __main_shape(shape_index).box2c_shape.m_normal(5).x & "," & __main_shape(shape_index).box2c_shape.m_normal(5).y & " m_normal6=" & __main_shape(shape_index).box2c_shape.m_normal(6).x & "," & __main_shape(shape_index).box2c_shape.m_normal(6).y & " m_normal7=" & __main_shape(shape_index).box2c_shape.m_normal(7).x & "," & __main_shape(shape_index).box2c_shape.m_normal(7).y
+    print "vertexcount=" & __main_shape(shape_index).box2c_shape.m_vertexCount
 
 '    __main_shape(shape_index).b2PolygonShape_ptr = @tmp_shape_struct
 
@@ -231,9 +239,15 @@ Function _Box2C_b2BodyDefDict_AddItem(byval body_type as integer, byval initial_
     __main_body_def(body_def_index).created = 1
 
 	' create a new Box2C Body Definition for the body type, initial x and y and angles, and add it to the internal array of body definition structures
-	__main_body_def(body_def_index).box2c_body_def = _Box2C_b2BodyDef_Constructor(body_type, initial_x, initial_y, initial_angle, 0, 0, 0, linearDamping, angularDamping, True, True, False, False, True, Null, 1)
+	__main_body_def(body_def_index).box2c_body_def = _Box2C_b2BodyDef_Constructor(body_type, initial_x, initial_y, initial_angle, 0, 0, 0, linearDamping, angularDamping, 1, 1, 0, 0, 1, Null, 1)
+'	__main_body_def(body_def_index).box2c_body_def = _Box2C_b2BodyDef_Constructor(2, 0, 4, 0, 0, 0, 0, linearDamping, angularDamping, 1, 1, 0, 0, 1, Null, 1)
+'	__main_body_def(body_def_index).box2c_body_def = _Box2C_b2BodyDef_Constructor(2, 0, 4, 0)
+    
+'    print "body_def ptr=" & @__main_body_def(body_def_index).box2c_body_def
+'    print "body_def_index=" & body_def_index
+'    print "body_def type2=" & __main_body_def(body_def_index).box2c_body_def.type2 & " positionx=" & __main_body_def(body_def_index).box2c_body_def.position.x & " positiony=" & __main_body_def(body_def_index).box2c_body_def.position.y & " angle=" & __main_body_def(body_def_index).box2c_body_def.angle & " linearVelocityx=" & __main_body_def(body_def_index).box2c_body_def.linearVelocity.x & " linearVelocityy=" & __main_body_def(body_def_index).box2c_body_def.linearVelocity.y & " angularVelocity=" & __main_body_def(body_def_index).box2c_body_def.angularVelocity & " linearDamping=" & __main_body_def(body_def_index).box2c_body_def.linearDamping & " angularDamping=" & __main_body_def(body_def_index).box2c_body_def.angularDamping & " allowSleep=" & __main_body_def(body_def_index).box2c_body_def.allowSleep & " awake=" & __main_body_def(body_def_index).box2c_body_def.awake & " fixedRotation=" & __main_body_def(body_def_index).box2c_body_def.fixedRotation & " bullet=" & __main_body_def(body_def_index).box2c_body_def.bullet & " active=" & __main_body_def(body_def_index).box2c_body_def.active & " userData=" & __main_body_def(body_def_index).box2c_body_def.userData & " gravityScale=" & __main_body_def(body_def_index).box2c_body_def.gravityScale
 
-	' return the index of the new body definition within the internal array of body definitions
+    
 	Return body_def_index
 End Function
 
@@ -290,12 +304,17 @@ Function _Box2C_b2BodyDict_AddItem_SFML(byval bodydef_index as integer, byval sh
     
     __main_body(body_index).created = 1
 
+ '   print "body_def type2=" & __main_body_def(bodydef_index).box2c_body_def.type2 & " positionx=" & __main_body_def(bodydef_index).box2c_body_def.position.x & " positiony=" & __main_body_def(bodydef_index).box2c_body_def.position.y & " angle=" & __main_body_def(bodydef_index).box2c_body_def.angle & " linearVelocityx=" & __main_body_def(bodydef_index).box2c_body_def.linearVelocity.x & " linearVelocityy=" & __main_body_def(bodydef_index).box2c_body_def.linearVelocity.y & " angularVelocity=" & __main_body_def(bodydef_index).box2c_body_def.angularVelocity & " linearDamping=" & __main_body_def(bodydef_index).box2c_body_def.linearDamping & " angularDamping=" & __main_body_def(bodydef_index).box2c_body_def.angularDamping & " allowSleep=" & __main_body_def(bodydef_index).box2c_body_def.allowSleep & " awake=" & __main_body_def(bodydef_index).box2c_body_def.awake & " fixedRotation=" & __main_body_def(bodydef_index).box2c_body_def.fixedRotation & " bullet=" & __main_body_def(bodydef_index).box2c_body_def.bullet & " active=" & __main_body_def(bodydef_index).box2c_body_def.active & " userData=" & __main_body_def(bodydef_index).box2c_body_def.userData & " gravityScale=" & __main_body_def(bodydef_index).box2c_body_def.gravityScale
+
     Dim As b2BodyDef Ptr bodydef_ptr = @__main_body_def(bodydef_index).box2c_body_def
     Dim As b2PolygonShapePortable Ptr shape_ptr = @__main_shape(shape_index).box2c_shape
 
 	' create a new Box2C Body for the index of the body definition supplied, and add it to the internal array of body structures
+'   print "initial_y=" & __main_body_def(bodydef_index).box2c_body_def.position.y
 	__main_body(body_index).body_ptr = _Box2C_b2World_CreateBody(__world_ptr, bodydef_ptr)
+    print "body_ptr=" & __main_body(body_index).body_ptr
 	_Box2C_b2Body_SetAwake(__main_body(body_index).body_ptr, True)
+
 
 	if x < 999999 And y < 999999 Then
 
@@ -306,6 +325,10 @@ Function _Box2C_b2BodyDict_AddItem_SFML(byval bodydef_index as integer, byval sh
 
 		_Box2C_b2Body_SetAngle(__main_body(body_index).body_ptr, angle)
 	EndIf
+
+'    dim as b2Vec2 ddd = _Box2C_b2Body_GetPosition(__main_body(body_index).body_ptr)
+'    dim as single eee = _Box2C_b2Body_GetAngle(__main_body(body_index).body_ptr)
+        
 
 	' add other attributes, such as the initial positions, angles and body widths and heights to the internal arrays for bodies
     __main_body(body_index).prev_screen_x = -1
@@ -336,8 +359,14 @@ Function _Box2C_b2BodyDict_AddItem_SFML(byval bodydef_index as integer, byval sh
     
     __main_fixture(fixture_index).created = 1
 
+
+
+
+
    	' create a new Box2C Fixture for the index of the body created, and the index of the shape supplied, and other attributes supplied (density, restitution and friction), add it to the internal array of fixture structures
 	__main_fixture(fixture_index).fixture_ptr = _Box2C_b2World_CreateFixture(__main_body(body_index).body_ptr, shape_ptr, density, restitution, friction)
+
+    print "fixture_index=" & fixture_index & " fixture_ptr=" & __main_fixture(fixture_index).fixture_ptr & " shape_ptr=" & shape_ptr & " density=" & density & " restitution=" & restitution & " friction=" & friction
 
 	' get the GUI position of the initial (vector) position of the body, and add it to the internal array of body GUI positions
 
@@ -345,13 +374,14 @@ Function _Box2C_b2BodyDict_AddItem_SFML(byval bodydef_index as integer, byval sh
 
         x = __main_body_def(bodydef_index).box2c_body_def.position.x
         y = __main_body_def(bodydef_index).box2c_body_def.position.y
+        print "x=" & x & ", y=" & y
 	EndIf
 
 
 
-	dim as GUI_Position tmp_gui_pos = _Box2C_b2Vec2_GetGUIPosition(x, y, __main_shape(shape_index).vertice())
-    __main_body(body_index).curr_screen_x = tmp_gui_pos.x
-    __main_body(body_index).curr_screen_y = tmp_gui_pos.y
+'	dim as GUI_Position tmp_gui_pos = _Box2C_b2Vec2_GetGUIPosition(x, y, __main_shape(shape_index).vertice())
+'    __main_body(body_index).curr_screen_x = tmp_gui_pos.x
+'    __main_body(body_index).curr_screen_y = tmp_gui_pos.y
 '    _ArrayAdd($__body_gui_pos, $tmp_gui_pos[0] & "|" & $tmp_gui_pos[1])
 
 	' add the index of the shape to the internal array of body shapes
@@ -360,26 +390,26 @@ Function _Box2C_b2BodyDict_AddItem_SFML(byval bodydef_index as integer, byval sh
 	' Add the SFML sprite
     
     ' find a main sprite that hasn't been created (created = 0)
-    dim as integer sprite_index
+'    dim as integer sprite_index
     
-    for sprite_index = 0 to (ubound(__main_sprite) - 1)
+'    for sprite_index = 0 to (ubound(__main_sprite) - 1)
         
-        if __main_sprite(sprite_index).created = 0 then
+'        if __main_sprite(sprite_index).created = 0 then
             
-            exit for
-        endif
-    next
+'            exit for
+'        endif
+'    next
     
-    __main_sprite(sprite_index).created = 1
-    __main_sprite(sprite_index).sprite_ptr = _CSFML_sfSprite_create()
-    _CSFML_sfSprite_setTexture(__main_sprite(sprite_index).sprite_ptr, __main_shape(shape_index).image_ptr, sfTrue)
+'    __main_sprite(sprite_index).created = 1
+'    __main_sprite(sprite_index).sprite_ptr = _CSFML_sfSprite_create()
+'    _CSFML_sfSprite_setTexture(__main_sprite(sprite_index).sprite_ptr, __main_shape(shape_index).image_ptr, sfTrue)
 
 '    Dim As sfVector2f shape_pixel_offset => (-shape_x_pixel_offset, -shape_y_pixel_offset)
-    __main_sprite(sprite_index).screen_offset.x = -shape_x_pixel_offset
-    __main_sprite(sprite_index).screen_offset.y = -shape_y_pixel_offset
+'    __main_sprite(sprite_index).screen_offset.x = -shape_x_pixel_offset
+'    __main_sprite(sprite_index).screen_offset.y = -shape_y_pixel_offset
 
 '	_CSFML_sfSprite_setOrigin($__sprite_ptr[$body_struct_ptr_index], _CSFML_sfVector2f_Constructor((($__body_width[$body_struct_ptr_index] / 2) * $__pixels_per_metre) + $shape_x_pixel_offset, (($__body_height[$body_struct_ptr_index] / 2) * $__pixels_per_metre) + $shape_y_pixel_offset))
-	_CSFML_sfSprite_setOrigin(__main_sprite(sprite_index).sprite_ptr, __main_sprite(sprite_index).screen_offset)
+'	_CSFML_sfSprite_setOrigin(__main_sprite(sprite_index).sprite_ptr, __main_sprite(sprite_index).screen_offset)
 
 	' Add the SFML convex shape
 

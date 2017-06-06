@@ -36,6 +36,14 @@ type b2Vec2
     y as Single
 end type
 
+type b2Vec3
+ '   a as single
+'    b as single
+    x(2) as single
+    'y as single
+  '  a as single
+end type
+
 type b2PolygonShapePortable
     m_type as integer
     m_radius as single
@@ -45,21 +53,29 @@ type b2PolygonShapePortable
     m_vertexCount as integer
 end type
 
+'type b2BodyDef
+'    type2 as integer
+'    position as b2Vec2
+'    angle as single
+'    linerVelocity as b2Vec2
+'    angularVelocity as single
+'    linearDamping as single
+'    angularDamping as single
+'    allowSleep as boolean
+'    awake as boolean
+'    fixedRotation as boolean
+'    bullet as boolean
+'    active as boolean
+'    userData as long ptr
+'    gravityScale as single
+'end type
+
+
 type b2BodyDef
     type2 as integer
-    position as b2Vec2
+    position_x as single
+    position_y as single
     angle as single
-    linearVelocity as b2Vec2
-    angularVelocity as single
-    linearDamping as single
-    angularDamping as single
-    allowSleep as boolean
-    awake as boolean
-    fixedRotation as boolean
-    bullet as boolean
-    active as boolean
-    userData as long ptr
-    gravityScale as single
 end type
 
 type b2FixtureDef
@@ -84,10 +100,8 @@ Dim Shared b2world_createbody As Function (byval world_ptr As long ptr, byval bo
 Dim Shared b2body_setawake As Sub (byval body_ptr As Long Ptr, byval awake as boolean)
 Dim Shared b2body_getangle As Function (byval body_ptr As long ptr) As single
 Dim Shared b2body_settransform As Sub (byval body_ptr As Long Ptr, byval position as b2Vec2, byval angle as single)
-Dim Shared b2body_getposition As Sub (byval body_ptr As Long Ptr, byval position as b2Vec2 Ptr)
+Dim Shared b2body_getposition As Sub (byval body_ptr As Long Ptr, byref position as b2Vec3 Ptr)
 Dim Shared b2world_step As Sub (byval world_ptr As Long Ptr, byval timeStep as single, byval velocityIterations as integer, byval positionIterations as integer)
-Dim Shared b2body_getlinearvelocity As Sub (byval body_ptr As Long Ptr, byval position as b2Vec2 Ptr)
-Dim Shared b2body_getangularvelocity As Function (byval body_ptr As long ptr) As single
 
 Declare Sub _Box2C_Startup
 Declare Sub _Box2C_Shutdown
@@ -100,7 +114,6 @@ Declare Function _Box2C_b2PolygonShape_CrossProductVectorVector(x1 as single, y1
 Declare Function _Box2C_b2PolygonShape_CrossProductVectorScalar(x as single, y as single, s as single) as b2Vec2
 Declare Function _Box2C_b2PolygonShape_Normalize(vector as b2Vec2) as b2Vec2
 Declare Function _Box2C_b2BodyDef_Constructor(type2 as integer = 2, position_x as single = 0, position_y as single = 0, angle as single = 0, linerVelocity_x as single = 0, linerVelocity_y as single = 0, angularVelocity as single = 0, linearDamping as single = 0, angularDamping as single = 0, allowSleep as boolean = 1, awake as boolean = 1, fixedRotation as boolean = 0, bullet as boolean = 0, active as boolean = 1, userData as long ptr = NULL, gravityScale as single = 1) As b2BodyDef
-Declare Function _Box2C_b2World_CreateFixture(byval body_ptr as long ptr, byval shape_ptr as b2PolygonShapePortable ptr, byval density as single, byval restitution as single, byval friction as single, byval filter_category_bits as ushort = 1, byval filter_mask_bits as ushort = 65535, byval filter_group_index as short = 0, byval is_sensor as boolean = 0, byval user_data as long ptr = NULL) As long ptr
 Declare Function _Box2C_b2World_CreateFixtureFromShape(byval body_ptr As long ptr, byval shape_ptr as b2PolygonShapePortable ptr, byval density as single) As long ptr
 Declare Sub _Box2C_b2Fixture_SetDensity(byval fixture_ptr As Long Ptr, byval value as single)
 Declare Sub _Box2C_b2Fixture_SetRestitution(byval fixture_ptr As Long Ptr, byval value as single)
@@ -112,8 +125,8 @@ Declare Function _Box2C_b2World_CreateBody(byval world_ptr As long ptr, byval bo
 Declare Sub _Box2C_b2Body_SetAwake(byval body_ptr As Long Ptr, byval awake as boolean)
 Declare Function _Box2C_b2Body_GetAngle(byval body_ptr As long ptr) As single
 Declare Sub _Box2C_b2Body_SetPosition(byval body_ptr As Long Ptr, byval x as single, byval y as single)
-Declare Function _Box2C_b2Body_GetPosition(byval body_ptr As Long Ptr) as b2Vec2
-Declare Sub _Box2C_b2Body_SetAngle(byval body_ptr As Long Ptr, byval angle as single)
+'Declare Function _Box2C_b2Body_GetPosition(byval body_ptr As Long Ptr) as b2Vec2
+'Declare Sub _Box2C_b2Body_SetAngle(byval body_ptr As Long Ptr, byval angle as single)
 Declare Sub _Box2C_b2World_Step(byval world_ptr As Long Ptr, byval timeStep as single, byval velocityIterations as integer, byval positionIterations as integer)
 ' ===============================================================================================================================
 
@@ -158,8 +171,6 @@ Sub _Box2C_Startup
 	b2body_settransform = DyLibSymbol( box2c_library, "b2body_settransform" )
 	b2body_getposition = DyLibSymbol( box2c_library, "b2body_getposition" )
 	b2world_step = DyLibSymbol( box2c_library, "b2world_step" )
-	b2body_getlinearvelocity = DyLibSymbol( box2c_library, "b2body_getlinearvelocity" )
-	b2body_getangularvelocity = DyLibSymbol( box2c_library, "b2body_getangularvelocity" )
 
 End Sub
 
@@ -287,16 +298,15 @@ Sub _Box2C_b2PolygonShape_Set(byref polygon_shape_portable As b2PolygonShapePort
 	
     ' Shift the shape, meaning it's center and therefore it's centroid, to the world position of 0,0, such that rotations and calculations are easier
 
-'	for vertice_num as integer = 0 to (UBound(vertices) - 1)
-	for vertice_num as integer = 0 to (4 - 1)
+	for vertice_num as integer = 0 to (UBound(vertices) - 1)
 
 		vertices(vertice_num).x = vertices(vertice_num).x - centroid.x
 		vertices(vertice_num).y = vertices(vertice_num).y - centroid.y
 	Next
 
-'    dim as integer polygon_shape_portable_element_num = 4
+    dim as integer polygon_shape_portable_element_num = 4
     
-	for vertice_num as integer = 0 to (4 - 1)
+	for vertice_num as integer = 0 to (UBound(vertices) - 1)
 
         polygon_shape_portable.m_vertice(vertice_num).x = vertices(vertice_num).x
         polygon_shape_portable.m_vertice(vertice_num).y = vertices(vertice_num).y
@@ -304,14 +314,12 @@ Sub _Box2C_b2PolygonShape_Set(byref polygon_shape_portable As b2PolygonShapePort
     
     ' Compute normals. Ensure the edges have non-zero length.
 
-'	for i as integer = 0 to (UBound(vertices) - 1)
-	for i as integer = 0 to (4 - 1)
+	for i as integer = 0 to (UBound(vertices) - 1)
 
 		dim as integer i1 = i
 		dim as integer i2 = 0
 
-'		if (i + 1) < UBound(vertices) Then
-		if (i + 1) < 4 Then
+		if (i + 1) < UBound(vertices) Then
 
 			i2 = i + 1
 		EndIf
@@ -331,8 +339,7 @@ Sub _Box2C_b2PolygonShape_Set(byref polygon_shape_portable As b2PolygonShapePort
     next
 
 	' Vertex Count
-'    polygon_shape_portable.m_vertexCount = ubound(vertices)
-    polygon_shape_portable.m_vertexCount = 4
+    polygon_shape_portable.m_vertexCount = ubound(vertices)
 
 End Sub
 
@@ -521,10 +528,9 @@ End Function
 ' Link ..........:
 ' Example .......:
 ' ===============================================================================================================================
-Function _Box2C_b2BodyDef_Constructor(type2 as integer = 2, position_x as single = 0, position_y as single = 0, angle as single = 0, linearVelocity_x as single = 0, linearVelocity_y as single = 0, angularVelocity as single = 0, linearDamping as single = 0, angularDamping as single = 0, allowSleep as boolean = 1, awake as boolean = 1, fixedRotation as boolean = 0, bullet as boolean = 0, active as boolean = 1, userData as long ptr = NULL, gravityScale as single = 1) As b2BodyDef
+Function _Box2C_b2BodyDef_Constructor(type2 as integer = 2, position_x as single = 0, position_y as single = 0, angle as single = 0, linerVelocity_x as single = 0, linerVelocity_y as single = 0, angularVelocity as single = 0, linearDamping as single = 0, angularDamping as single = 0, allowSleep as boolean = 1, awake as boolean = 1, fixedRotation as boolean = 0, bullet as boolean = 0, active as boolean = 1, userData as long ptr = NULL, gravityScale as single = 1) As b2BodyDef
 
-    Dim As b2BodyDef body_def => (type2, (position_x, position_y), angle, (linearVelocity_x, linearVelocity_y), angularVelocity, linearDamping, angularDamping, allowSleep, awake, fixedRotation, bullet, active, userData, gravityScale)
-'    print "body_def type2=" & body_def.type2 & " positionx=" & body_def.position.x & " positiony=" & body_def.position.y & " angle=" & body_def.angle & " linearVelocityx=" & body_def.linearVelocity.x & " linearVelocityy=" & body_def.linearVelocity.y & " angularVelocity=" & body_def.angularVelocity & " linearDamping=" & body_def.linearDamping & " angularDamping=" & body_def.angularDamping & " allowSleep=" & body_def.allowSleep & " awake=" & body_def.awake & " fixedRotation=" & body_def.fixedRotation & " bullet=" & body_def.bullet & " active=" & body_def.active & " userData=" & body_def.userData & " gravityScale=" & body_def.gravityScale
+    Dim As b2BodyDef body_def '=> (type2, (position_x, position_y), angle, (linerVelocity_x, linerVelocity_y), angularVelocity, linearDamping, angularDamping, allowSleep, awake, fixedRotation, bullet, active, userData, gravityScale)
 	Return body_def
 End Function
 
@@ -555,10 +561,9 @@ End Function
 ' ===============================================================================================================================
 Function _Box2C_b2World_CreateFixture(byval body_ptr as long ptr, byval shape_ptr as b2PolygonShapePortable ptr, byval density as single, byval restitution as single, byval friction as single, byval filter_category_bits as ushort = 1, byval filter_mask_bits as ushort = 65535, byval filter_group_index as short = 0, byval is_sensor as boolean = 0, byval user_data as long ptr = NULL) As long ptr
 
-'	Dim As long ptr fixture_ptr = _Box2C_b2World_CreateFixtureFromShape(body_ptr, shape_ptr, density)
-	Dim As long ptr fixture_ptr = _Box2C_b2World_CreateFixtureFromShape(body_ptr, shape_ptr, 0)
+	Dim As long ptr fixture_ptr = _Box2C_b2World_CreateFixtureFromShape(body_ptr, shape_ptr, density)
 
-    _Box2C_b2Fixture_SetDensity(fixture_ptr, density)
+'    _Box2C_b2Fixture_SetDensity(fixture_ptr, 1)
     _Box2C_b2Fixture_SetRestitution(fixture_ptr, restitution)
     _Box2C_b2Fixture_SetFriction(fixture_ptr, friction)
 
@@ -780,10 +785,10 @@ End Sub
 ' ===============================================================================================================================
 Sub _Box2C_b2Body_SetPosition(byval body_ptr As Long Ptr, byval x as single, byval y as single)
 
-    dim as b2Vec2 position => (x, y)
-'    dim as b2Vec2 position
-'    position.x = 5.5
-'    position.y = 6.6
+'    dim as b2Vec2 position => (x, y)
+    dim as b2Vec2 position
+    position.x = 5.5
+    position.y = 6.6
 	dim as single angle = _Box2C_b2Body_GetAngle(body_ptr)
     b2body_settransform(body_ptr, position, angle)
 End Sub
@@ -825,11 +830,11 @@ End function
 ' Link ..........:
 ' Example .......:
 ' ===============================================================================================================================
-Sub _Box2C_b2Body_SetAngle(byval body_ptr As Long Ptr, byval angle as single)
+'Sub _Box2C_b2Body_SetAngle(byval body_ptr As Long Ptr, byval angle as single)
 
-    dim as b2Vec2 position = _Box2C_b2Body_GetPosition(body_ptr)
-    b2body_settransform(body_ptr, position, angle)
-End Sub
+'    dim as b2Vec2 position = _Box2C_b2Body_GetPosition(body_ptr)
+'    b2body_settransform(body_ptr, position, angle)
+'End Sub
 
 
 ' #FUNCTION# ====================================================================================================================
@@ -845,14 +850,14 @@ End Sub
 ' Link ..........:
 ' Example .......:
 ' ===============================================================================================================================
-Function _Box2C_b2Body_GetPosition(byval body_ptr As Long Ptr) as b2Vec2
+'Function _Box2C_b2Body_GetPosition(byval body_ptr As Long Ptr) as b2Vec2
 
-    dim as b2Vec2 position
-    dim as b2Vec2 ptr position_ptr = @position
-    b2body_getposition(body_ptr, position_ptr)
-    print "position x = " & position.x & ", y = " & position.y
-    return position
-End Function
+'    dim as b2Vec2 position
+'    dim as b2Vec2 ptr position_ptr = @position
+'    b2body_getposition(body_ptr, position_ptr)
+'    print "position x = " & position.x & ", y = " & position.y
+'    return position
+'End Function
 
 
 ' #FUNCTION# ====================================================================================================================
